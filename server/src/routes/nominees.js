@@ -68,4 +68,84 @@ router.get('/:id', async (req, res, next) => {
   }
 });
 
+// POST /api/nominees - Admin directly add nominee
+router.post('/', async (req, res, next) => {
+  try {
+    const { name, category_id, course, year_of_study, photo_url, bio, achievements } = req.body;
+
+    if (!name || !category_id) {
+      return res.status(400).json({ error: { message: 'Nominee name and category are required' } });
+    }
+
+    if (!supabase) {
+      const newNom = mockData.addNominee({
+        name,
+        category_id,
+        course,
+        year_of_study,
+        photo_url,
+        bio,
+        achievements,
+      });
+      return res.status(201).json(newNom);
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('nominees')
+        .insert({
+          name,
+          category_id,
+          course,
+          year_of_study,
+          photo_url,
+          bio,
+          achievements,
+          status: 'approved',
+          total_points: 0,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      res.status(201).json(data);
+    } catch (e) {
+      const newNom = mockData.addNominee({
+        name,
+        category_id,
+        course,
+        year_of_study,
+        photo_url,
+        bio,
+        achievements,
+      });
+      res.status(201).json(newNom);
+    }
+  } catch (err) {
+    next(err);
+  }
+});
+
+// DELETE /api/nominees/:id - Admin remove nominee
+router.delete('/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    if (!supabase) {
+      const deleted = mockData.deleteNominee(id);
+      return res.json({ success: true, deleted });
+    }
+
+    try {
+      await supabase.from('nominees').delete().eq('id', id);
+      res.json({ success: true, id });
+    } catch (e) {
+      mockData.deleteNominee(id);
+      res.json({ success: true, id });
+    }
+  } catch (err) {
+    next(err);
+  }
+});
+
 module.exports = router;

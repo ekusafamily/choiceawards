@@ -30,6 +30,9 @@ export default function Footer() {
                 DeKUT Student Welfare
               </a>
             </li>
+            <li>
+              <Link to="/admin" style={{ opacity: 0.75 }}>Admin</Link>
+            </li>
           </ul>
 
           <p className="footer-copy">

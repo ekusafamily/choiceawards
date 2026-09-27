@@ -12,10 +12,11 @@ router.get('/', async (req, res, next) => {
     }
 
     try {
-      const [{ count: catCount }, { count: nomCount }, { count: voteCount }] = await Promise.all([
+      const [{ count: catCount }, { count: nomCount }, { count: voteCount }, { count: pendingCount }] = await Promise.all([
         supabase.from('categories').select('*', { count: 'exact', head: true }),
         supabase.from('nominees').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
         supabase.from('votes').select('*', { count: 'exact', head: true }),
+        supabase.from('nominations').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
       ]);
 
       if (catCount === null || catCount === undefined || catCount === 0) {
@@ -26,6 +27,7 @@ router.get('/', async (req, res, next) => {
         categoriesCount: catCount || 0,
         nomineesCount: nomCount || 0,
         votesCount: voteCount || 0,
+        pendingNominations: pendingCount || 0,
       });
     } catch (e) {
       res.json(mockData.getStats());

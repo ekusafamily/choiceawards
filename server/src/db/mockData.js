@@ -239,7 +239,51 @@ let MOCK_VOTES = [
   { id: 'v-4', nominee_id: 'nom-13', category_id: 'cat-19', amount: 500, points: 550, created_at: new Date().toISOString() },
 ];
 
-let MOCK_NOMINATIONS = [];
+let MOCK_NOMINATIONS = [
+  {
+    id: 'nomination-1',
+    nominee_name: 'George Ndirangu',
+    category_id: 'cat-17',
+    course: 'BSc Mechanical Engineering',
+    year_of_study: '3',
+    photo_url: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=500&auto=format&fit=crop&q=80',
+    short_profile: 'Hardware maker, IoT designer, and founder of the campus 3D print lab.',
+    achievements: 'Fabricated campus 3D printer prototype; Conducted 4 hardware workshops in Siemens Lab.',
+    reason: 'Outstanding contribution to campus makerspace and student innovation.',
+    submitted_by: 'Martin Mwangi (Class Rep)',
+    status: 'pending',
+    created_at: new Date('2026-09-26T10:00:00Z').toISOString(),
+  },
+  {
+    id: 'nomination-2',
+    nominee_name: 'Faith Wangari',
+    category_id: 'cat-13',
+    course: 'BSc Business Information Technology',
+    year_of_study: '2',
+    photo_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80',
+    short_profile: 'Student entrepreneur running the campus thrift store and event marketing.',
+    achievements: 'Managed publicity for Cultural Week 2025; Grew campus business community to 1,500 students.',
+    reason: 'Dynamic marketing leadership and consistent engagement across DeKUT.',
+    submitted_by: 'Sharon Chepkemoi',
+    status: 'pending',
+    created_at: new Date('2026-09-27T08:30:00Z').toISOString(),
+  },
+  {
+    id: 'nomination-3',
+    nominee_name: 'Victor Koech',
+    category_id: 'cat-6',
+    course: 'BSc Electrical & Electronics Engineering',
+    year_of_study: '4',
+    photo_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&auto=format&fit=crop&q=80',
+    bio: 'DeKUT Athletics track captain and 400m sprinter.',
+    short_profile: 'Track captain representing DeKUT at National University Games.',
+    achievements: 'Gold medal 400m KUSA Central League 2025; Team captain.',
+    reason: 'Exemplary discipline in sports and academics.',
+    submitted_by: 'Coach Otieno',
+    status: 'pending',
+    created_at: new Date('2026-09-27T11:15:00Z').toISOString(),
+  },
+];
 
 function getCategories() {
   return MOCK_CATEGORIES;
@@ -275,6 +319,82 @@ function getNomineeById(id) {
     ...nom,
     categories: cat ? { name: cat.name, slug: cat.slug } : null,
   };
+}
+
+function addNominee(data) {
+  const newNominee = {
+    id: `nom-${Date.now()}`,
+    name: data.name,
+    course: data.course || '',
+    year_of_study: data.year_of_study ? `Year ${data.year_of_study.toString().replace(/^year\s*/i, '')}` : '',
+    category_id: data.category_id,
+    photo_url: data.photo_url || null,
+    bio: data.bio || data.short_profile || '',
+    achievements: data.achievements || '',
+    status: 'approved',
+    total_points: data.total_points || 0,
+    created_at: new Date().toISOString(),
+  };
+  MOCK_NOMINEES.unshift(newNominee);
+  return newNominee;
+}
+
+function deleteNominee(id) {
+  const idx = MOCK_NOMINEES.findIndex((n) => n.id === id);
+  if (idx !== -1) {
+    const deleted = MOCK_NOMINEES.splice(idx, 1)[0];
+    return deleted;
+  }
+  return null;
+}
+
+function getNominations(status) {
+  let list = [...MOCK_NOMINATIONS];
+  if (status) {
+    list = list.filter((n) => n.status === status);
+  }
+  return list.map((nom) => {
+    const cat = MOCK_CATEGORIES.find((c) => c.id === nom.category_id);
+    return {
+      ...nom,
+      categories: cat ? { name: cat.name, slug: cat.slug } : null,
+    };
+  }).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+}
+
+function approveNomination(id) {
+  const nom = MOCK_NOMINATIONS.find((n) => n.id === id);
+  if (!nom) return null;
+  nom.status = 'approved';
+
+  // Promote to approved nominee
+  const promotedNominee = addNominee({
+    name: nom.nominee_name,
+    course: nom.course,
+    year_of_study: nom.year_of_study,
+    category_id: nom.category_id,
+    photo_url: nom.photo_url,
+    bio: nom.short_profile || nom.reason,
+    achievements: nom.achievements,
+    total_points: 0,
+  });
+
+  return { nomination: nom, nominee: promotedNominee };
+}
+
+function rejectNomination(id) {
+  const nom = MOCK_NOMINATIONS.find((n) => n.id === id);
+  if (!nom) return null;
+  nom.status = 'rejected';
+  return nom;
+}
+
+function deleteNomination(id) {
+  const idx = MOCK_NOMINATIONS.findIndex((n) => n.id === id);
+  if (idx !== -1) {
+    return MOCK_NOMINATIONS.splice(idx, 1)[0];
+  }
+  return null;
 }
 
 function getLeaderboard(slug) {
@@ -322,18 +442,20 @@ function recordNomination(data) {
     status: 'pending',
     created_at: new Date().toISOString(),
   };
-  MOCK_NOMINATIONS.push(nomination);
+  MOCK_NOMINATIONS.unshift(nomination);
   return nomination;
 }
 
 function getStats() {
   const totalVotesCount = MOCK_VOTES.length;
   const totalPoints = MOCK_NOMINEES.reduce((acc, curr) => acc + (curr.total_points || 0), 0);
+  const pendingNominations = MOCK_NOMINATIONS.filter((n) => n.status === 'pending').length;
   return {
     categoriesCount: MOCK_CATEGORIES.length,
     nomineesCount: MOCK_NOMINEES.length,
-    votesCount: totalVotesCount + 148, // seeded initial baseline votes
+    votesCount: totalVotesCount + 148,
     totalPoints,
+    pendingNominations,
   };
 }
 
@@ -346,6 +468,12 @@ module.exports = {
   getCategoryBySlug,
   getNominees,
   getNomineeById,
+  addNominee,
+  deleteNominee,
+  getNominations,
+  approveNomination,
+  rejectNomination,
+  deleteNomination,
   getLeaderboard,
   recordVote,
   recordNomination,
