@@ -6,6 +6,8 @@ import {
 
 const iconMap = {
   'social-media-personality': Globe,
+  'male-student-leader': Shield,
+  'female-student-leader': Shield,
   'student-leader': Shield,
   'male-council-member': Shield,
   'female-council-member': Shield,

@@ -32,8 +32,9 @@ router.get('/:slug', async (req, res, next) => {
   try {
     let { slug } = req.params;
     const slugAliases = {
-      'male-council-member': 'student-leader',
-      'female-council-member': 'student-leader',
+      'male-council-member': 'male-student-leader',
+      'female-council-member': 'female-student-leader',
+      'student-leader': 'male-student-leader',
       'association-leader': 'association-club-leader',
     };
     if (slugAliases[slug]) {
