@@ -7,7 +7,7 @@ import { Target, CheckCircle2, Globe, Sparkles, HeartHandshake, Award } from 'lu
 
 export default function Home() {
   const [categories, setCategories] = useState([]);
-  const [stats, setStats] = useState({ categoriesCount: 19, nomineesCount: 0, votesCount: 0 });
+  const [stats, setStats] = useState({ categoriesCount: 20, nomineesCount: 0, votesCount: 0 });
   const [nomineeCountMap, setNomineeCountMap] = useState({});
   const [topNomineeMap, setTopNomineeMap] = useState({});
   const [loading, setLoading] = useState(true);

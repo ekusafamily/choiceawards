@@ -20,7 +20,7 @@ export default function Admin() {
 
   // Dashboard state
   const [activeTab, setActiveTab] = useState('nominations'); // 'nominations' | 'nominees' | 'categories'
-  const [stats, setStats] = useState({ categoriesCount: 19, nomineesCount: 0, votesCount: 0, totalPoints: 0, pendingNominations: 0 });
+  const [stats, setStats] = useState({ categoriesCount: 20, nomineesCount: 0, votesCount: 0, totalPoints: 0, pendingNominations: 0 });
   const [nominations, setNominations] = useState([]);
   const [nominees, setNominees] = useState([]);
   const [categories, setCategories] = useState([]);

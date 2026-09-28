@@ -30,7 +30,15 @@ router.get('/', async (req, res, next) => {
 // GET /api/categories/:slug - Single category with approved nominees
 router.get('/:slug', async (req, res, next) => {
   try {
-    const { slug } = req.params;
+    let { slug } = req.params;
+    const slugAliases = {
+      'male-council-member': 'student-leader',
+      'female-council-member': 'student-leader',
+      'association-leader': 'association-club-leader',
+    };
+    if (slugAliases[slug]) {
+      slug = slugAliases[slug];
+    }
 
     if (!supabase) {
       const category = mockData.getCategoryBySlug(slug);

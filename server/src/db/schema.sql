@@ -64,24 +64,25 @@ CREATE INDEX IF NOT EXISTS idx_nominations_status ON nominations(status);
 -- Seed categories
 INSERT INTO categories (name, slug, type, display_order) VALUES
   ('Social Media Personality of the Year', 'social-media-personality', 'individual', 1),
-  ('Male Students'' Council Member of the Year', 'male-council-member', 'individual', 2),
-  ('Female Students'' Council Member of the Year', 'female-council-member', 'individual', 3),
-  ('Male Class Representative of the Year', 'male-class-rep', 'individual', 4),
-  ('Female Class Representative of the Year', 'female-class-rep', 'individual', 5),
-  ('Male Sports Person of the Year', 'male-sports-person', 'individual', 6),
-  ('Female Sports Person of the Year', 'female-sports-person', 'individual', 7),
+  ('Student Leader of the Year', 'student-leader', 'individual', 2),
+  ('Male Class Representative of the Year', 'male-class-rep', 'individual', 3),
+  ('Female Class Representative of the Year', 'female-class-rep', 'individual', 4),
+  ('Male Sports Person of the Year', 'male-sports-person', 'individual', 5),
+  ('Female Sports Person of the Year', 'female-sports-person', 'individual', 6),
+  ('Best Sports Captain', 'best-sports-captain', 'individual', 7),
   ('Male Influencer of the Year', 'male-influencer', 'individual', 8),
   ('Female Influencer of the Year', 'female-influencer', 'individual', 9),
   ('Male Model of the Year', 'male-model', 'individual', 10),
   ('Female Model of the Year', 'female-model', 'individual', 11),
-  ('Association Leader of the Year', 'association-leader', 'individual', 12),
-  ('Marketer of the Year', 'marketer', 'individual', 13),
-  ('Content Creator of the Year', 'content-creator', 'individual', 14),
-  ('Photographer/Videographer of the Year', 'photographer-videographer', 'individual', 15),
-  ('Campus Personality of the Year', 'campus-personality', 'individual', 16),
-  ('Tech Developer of the Year', 'tech-developer', 'individual', 17),
-  ('Association of the Year', 'association-of-year', 'organization', 18),
-  ('Club of the Year', 'club-of-year', 'organization', 19)
+  ('Student Artist of the Year', 'student-artist', 'individual', 12),
+  ('Association/Club Leader of the Year', 'association-club-leader', 'individual', 13),
+  ('Marketer of the Year', 'marketer', 'individual', 14),
+  ('Content Creator of the Year', 'content-creator', 'individual', 15),
+  ('Photographer/Videographer of the Year', 'photographer-videographer', 'individual', 16),
+  ('Campus Personality of the Year', 'campus-personality', 'individual', 17),
+  ('Tech Developer of the Year', 'tech-developer', 'individual', 18),
+  ('Association of the Year', 'association-of-year', 'organization', 19),
+  ('Club of the Year', 'club-of-year', 'organization', 20)
 ON CONFLICT (slug) DO NOTHING;
 
 -- Enable Row Level Security

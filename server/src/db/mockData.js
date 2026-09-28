@@ -3,24 +3,25 @@
 
 const MOCK_CATEGORIES = [
   { id: 'cat-1', name: 'Social Media Personality of the Year', slug: 'social-media-personality', type: 'individual', display_order: 1 },
-  { id: 'cat-2', name: "Male Students' Council Member of the Year", slug: 'male-council-member', type: 'individual', display_order: 2 },
-  { id: 'cat-3', name: "Female Students' Council Member of the Year", slug: 'female-council-member', type: 'individual', display_order: 3 },
-  { id: 'cat-4', name: 'Male Class Representative of the Year', slug: 'male-class-rep', type: 'individual', display_order: 4 },
-  { id: 'cat-5', name: 'Female Class Representative of the Year', slug: 'female-class-rep', type: 'individual', display_order: 5 },
-  { id: 'cat-6', name: 'Male Sports Person of the Year', slug: 'male-sports-person', type: 'individual', display_order: 6 },
-  { id: 'cat-7', name: 'Female Sports Person of the Year', slug: 'female-sports-person', type: 'individual', display_order: 7 },
+  { id: 'cat-2', name: 'Student Leader of the Year', slug: 'student-leader', type: 'individual', display_order: 2 },
+  { id: 'cat-4', name: 'Male Class Representative of the Year', slug: 'male-class-rep', type: 'individual', display_order: 3 },
+  { id: 'cat-5', name: 'Female Class Representative of the Year', slug: 'female-class-rep', type: 'individual', display_order: 4 },
+  { id: 'cat-6', name: 'Male Sports Person of the Year', slug: 'male-sports-person', type: 'individual', display_order: 5 },
+  { id: 'cat-7', name: 'Female Sports Person of the Year', slug: 'female-sports-person', type: 'individual', display_order: 6 },
+  { id: 'cat-20', name: 'Best Sports Captain', slug: 'best-sports-captain', type: 'individual', display_order: 7 },
   { id: 'cat-8', name: 'Male Influencer of the Year', slug: 'male-influencer', type: 'individual', display_order: 8 },
   { id: 'cat-9', name: 'Female Influencer of the Year', slug: 'female-influencer', type: 'individual', display_order: 9 },
   { id: 'cat-10', name: 'Male Model of the Year', slug: 'male-model', type: 'individual', display_order: 10 },
   { id: 'cat-11', name: 'Female Model of the Year', slug: 'female-model', type: 'individual', display_order: 11 },
-  { id: 'cat-12', name: 'Association Leader of the Year', slug: 'association-leader', type: 'individual', display_order: 12 },
-  { id: 'cat-13', name: 'Marketer of the Year', slug: 'marketer', type: 'individual', display_order: 13 },
-  { id: 'cat-14', name: 'Content Creator of the Year', slug: 'content-creator', type: 'individual', display_order: 14 },
-  { id: 'cat-15', name: 'Photographer/Videographer of the Year', slug: 'photographer-videographer', type: 'individual', display_order: 15 },
-  { id: 'cat-16', name: 'Campus Personality of the Year', slug: 'campus-personality', type: 'individual', display_order: 16 },
-  { id: 'cat-17', name: 'Tech Developer of the Year', slug: 'tech-developer', type: 'individual', display_order: 17 },
-  { id: 'cat-18', name: 'Association of the Year', slug: 'association-of-year', type: 'organization', display_order: 18 },
-  { id: 'cat-19', name: 'Club of the Year', slug: 'club-of-year', type: 'organization', display_order: 19 },
+  { id: 'cat-21', name: 'Student Artist of the Year', slug: 'student-artist', type: 'individual', display_order: 12 },
+  { id: 'cat-12', name: 'Association/Club Leader of the Year', slug: 'association-club-leader', type: 'individual', display_order: 13 },
+  { id: 'cat-13', name: 'Marketer of the Year', slug: 'marketer', type: 'individual', display_order: 14 },
+  { id: 'cat-14', name: 'Content Creator of the Year', slug: 'content-creator', type: 'individual', display_order: 15 },
+  { id: 'cat-15', name: 'Photographer/Videographer of the Year', slug: 'photographer-videographer', type: 'individual', display_order: 16 },
+  { id: 'cat-16', name: 'Campus Personality of the Year', slug: 'campus-personality', type: 'individual', display_order: 17 },
+  { id: 'cat-17', name: 'Tech Developer of the Year', slug: 'tech-developer', type: 'individual', display_order: 18 },
+  { id: 'cat-18', name: 'Association of the Year', slug: 'association-of-year', type: 'organization', display_order: 19 },
+  { id: 'cat-19', name: 'Club of the Year', slug: 'club-of-year', type: 'organization', display_order: 20 },
 ];
 
 let MOCK_NOMINEES = [
@@ -93,13 +94,13 @@ let MOCK_NOMINEES = [
     created_at: new Date('2026-09-02').toISOString(),
   },
 
-  // Female Students' Council Member
+  // Student Leaders (formerly council members)
   {
     id: 'nom-6',
     name: 'Pascoline Muthoni Wereri',
     course: 'BSc Nursing',
     year_of_study: 'Year 2',
-    category_id: 'cat-3',
+    category_id: 'cat-2',
     photo_url: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=500&auto=format&fit=crop&q=80',
     bio: 'Vice Chairperson of DeKUTSO. Passionate advocate for student health, gender equality, clean sanitation facilities, and peer mentorship.',
     achievements: 'Spearheaded campus sanitary towel drive; initiated first-aid training camps across engineering and nursing schools; led student welfare outreach.',
@@ -112,13 +113,69 @@ let MOCK_NOMINEES = [
     name: 'Bernadette Maureen Seiyan',
     course: 'BSc Actuarial Science',
     year_of_study: 'Year 3',
-    category_id: 'cat-3',
+    category_id: 'cat-2',
     photo_url: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=500&auto=format&fit=crop&q=80',
     bio: 'Gender & Disability Mainstreaming Secretary. Championing accessibility across university halls, elevators, ramps, and inclusive campus life.',
     achievements: 'Audit and improvement of ramps in resource centres; organised the first annual Campus Disability Inclusion Week.',
     status: 'approved',
     total_points: 3780,
     created_at: new Date('2026-09-02').toISOString(),
+  },
+
+  // Best Sports Captain
+  {
+    id: 'nom-20',
+    name: 'Emmanuel Kipchirchir',
+    course: 'BSc Civil Engineering',
+    year_of_study: 'Year 4',
+    category_id: 'cat-20',
+    photo_url: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=500&auto=format&fit=crop&q=80',
+    bio: 'Captain of the DeKUT Kimathi Blackbirds Rugby Team. Fierce leader on the pitch and mentor for upcoming student athletes.',
+    achievements: 'Led the Blackbirds to victory in KUSA Central 7s 2025; Most Valuable Captain at Nyeri Universities Derby.',
+    status: 'approved',
+    total_points: 3950,
+    created_at: new Date('2026-09-02').toISOString(),
+  },
+  {
+    id: 'nom-21',
+    name: 'Sharon Mwangi',
+    course: 'Bachelor of Commerce',
+    year_of_study: 'Year 3',
+    category_id: 'cat-20',
+    photo_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80',
+    bio: 'Captain of DeKUT Scorpions Basketball Team. Inspirational leader driving excellence in collegiate sports and community drives.',
+    achievements: 'Guided Scorpions to national play-offs; Best defensively disciplined captain in Eastern/Central varsity league.',
+    status: 'approved',
+    total_points: 3410,
+    created_at: new Date('2026-09-02').toISOString(),
+  },
+
+  // Student Artist of the Year
+  {
+    id: 'nom-22',
+    name: 'Austin Ochieng',
+    course: 'BSc Computer Science',
+    year_of_study: 'Year 3',
+    category_id: 'cat-21',
+    photo_url: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=500&auto=format&fit=crop&q=80',
+    bio: 'Acoustic performer, vocalist, and songwriter. Headliner at DeKUT Cultural Weeks and composer of widely streamed campus anthems.',
+    achievements: 'Over 80k streams on Spotify & YouTube; Winner of DeKUT Got Talent 2025; Produced original varsity soundtrack.',
+    status: 'approved',
+    total_points: 4120,
+    created_at: new Date('2026-09-02').toISOString(),
+  },
+  {
+    id: 'nom-23',
+    name: 'Cynthia Moraa',
+    course: 'BSc Food Science & Technology',
+    year_of_study: 'Year 2',
+    category_id: 'cat-21',
+    photo_url: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=500&auto=format&fit=crop&q=80',
+    bio: 'Fine artist, muralist, and digital illustrator whose campus murals celebrate student culture, African heritage, and youth empowerment.',
+    achievements: 'Designed official DeKUT Innovation Week murals; Featured in National Youth Arts Exhibition 2025.',
+    status: 'approved',
+    total_points: 3670,
+    created_at: new Date('2026-09-03').toISOString(),
   },
 
   // Tech Developer
@@ -290,7 +347,13 @@ function getCategories() {
 }
 
 function getCategoryBySlug(slug) {
-  const cat = MOCK_CATEGORIES.find((c) => c.slug === slug);
+  const slugAliases = {
+    'male-council-member': 'student-leader',
+    'female-council-member': 'student-leader',
+    'association-leader': 'association-club-leader',
+  };
+  const targetSlug = slugAliases[slug] || slug;
+  const cat = MOCK_CATEGORIES.find((c) => c.slug === targetSlug);
   if (!cat) return null;
   const nominees = MOCK_NOMINEES.filter((n) => n.category_id === cat.id && n.status === 'approved')
     .sort((a, b) => b.total_points - a.total_points);
