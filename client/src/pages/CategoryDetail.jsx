@@ -4,6 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 import apiClient from '../api/client';
 import NomineeCard from '../components/NomineeCard';
 import LeaderboardTable from '../components/LeaderboardTable';
+import VoteModal from '../components/VoteModal';
 
 export default function CategoryDetail() {
   const { slug } = useParams();
@@ -11,6 +12,8 @@ export default function CategoryDetail() {
   const [nominees, setNominees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState('leaderboard');
+  const [votingFor, setVotingFor] = useState(null);
+  const [voteSuccess, setVoteSuccess] = useState(false);
 
   useEffect(() => {
     async function fetch() {
@@ -26,6 +29,23 @@ export default function CategoryDetail() {
     }
     fetch();
   }, [slug]);
+
+  async function handleVote(voteData) {
+    const { data } = await apiClient.post('/votes', voteData);
+    // Update points for the voted nominee in-place
+    setNominees((prev) =>
+      prev
+        .map((n) =>
+          n.id === voteData.nominee_id
+            ? { ...n, total_points: (n.total_points || 0) + data.points }
+            : n
+        )
+        .sort((a, b) => (b.total_points || 0) - (a.total_points || 0))
+    );
+    setVotingFor(null);
+    setVoteSuccess(true);
+    setTimeout(() => setVoteSuccess(false), 4000);
+  }
 
   if (loading) {
     return (
@@ -46,8 +66,8 @@ export default function CategoryDetail() {
           <div className="error-state">
             <h2>Category Not Found</h2>
             <p>The category you are looking for does not exist.</p>
-            <Link to="/categories" className="btn btn-primary" style={{ marginTop: 'var(--space-lg)' }}>
-              Back to Categories
+            <Link to="/" className="btn btn-primary" style={{ marginTop: 'var(--space-lg)' }}>
+              Back to Home
             </Link>
           </div>
         </div>
@@ -55,14 +75,14 @@ export default function CategoryDetail() {
     );
   }
 
-  // Add position numbers
+  // Add position numbers (already sorted by points from backend)
   const rankedNominees = nominees.map((n, i) => ({ ...n, position: i + 1 }));
 
   return (
     <div className="page">
       <div className="container">
         <Link
-          to="/categories"
+          to="/"
           style={{
             display: 'inline-flex',
             alignItems: 'center',
@@ -72,7 +92,7 @@ export default function CategoryDetail() {
             fontSize: '0.9rem',
           }}
         >
-          <ArrowLeft size={16} /> Back to Categories
+          <ArrowLeft size={16} /> Back to Home
         </Link>
 
         <div style={{ marginBottom: 'var(--space-2xl)' }}>
@@ -95,6 +115,23 @@ export default function CategoryDetail() {
           </span>
           <h1 style={{ fontSize: '2rem' }}>{category.name}</h1>
         </div>
+
+        {/* Vote success toast */}
+        {voteSuccess && (
+          <div
+            style={{
+              padding: 'var(--space-md)',
+              background: 'rgba(27, 94, 32, 0.1)',
+              border: '1px solid var(--color-success)',
+              borderRadius: 'var(--radius-sm)',
+              marginBottom: 'var(--space-lg)',
+              color: 'var(--color-success)',
+              fontWeight: 600,
+            }}
+          >
+            ✓ Vote submitted! Thank you for your support.
+          </div>
+        )}
 
         {/* View Toggle */}
         <div
@@ -122,12 +159,17 @@ export default function CategoryDetail() {
           <LeaderboardTable
             nominees={rankedNominees}
             categoryName={category.name}
+            onVote={(nominee) => setVotingFor(nominee)}
           />
         ) : (
           nominees.length > 0 ? (
             <div className="nominees-grid">
               {nominees.map((n) => (
-                <NomineeCard key={n.id} nominee={n} />
+                <NomineeCard
+                  key={n.id}
+                  nominee={n}
+                  onVote={(nominee) => setVotingFor(nominee)}
+                />
               ))}
             </div>
           ) : (
@@ -140,6 +182,16 @@ export default function CategoryDetail() {
           )
         )}
       </div>
+
+      {/* Vote Modal */}
+      {votingFor && (
+        <VoteModal
+          nominee={votingFor}
+          onClose={() => setVotingFor(null)}
+          onVote={handleVote}
+        />
+      )}
     </div>
   );
 }
+

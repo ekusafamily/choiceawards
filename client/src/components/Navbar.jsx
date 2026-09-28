@@ -25,13 +25,13 @@ export default function Navbar() {
 
         <ul className={`navbar-links ${open ? 'open' : ''}`} id="navbar-links">
           <li>
-            <NavLink to="/" end onClick={() => setOpen(false)}>
+            <NavLink to="/" end onClick={() => setOpen(false)} id="navbar-home-link">
               Home
             </NavLink>
           </li>
           <li>
-            <NavLink to="/categories" onClick={() => setOpen(false)}>
-              Categories
+            <NavLink to="/nominees" onClick={() => setOpen(false)} id="navbar-nominees-link">
+              Nominees
             </NavLink>
           </li>
           <li>

@@ -10,6 +10,7 @@ const votesRouter = require('./routes/votes');
 const leaderboardRouter = require('./routes/leaderboard');
 const statsRouter = require('./routes/stats');
 const uploadRouter = require('./routes/upload');
+const adminRouter = require('./routes/admin');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -26,6 +27,7 @@ app.use('/api/votes', votesRouter);
 app.use('/api/leaderboard', leaderboardRouter);
 app.use('/api/stats', statsRouter);
 app.use('/api/upload', uploadRouter);
+app.use('/api/admin', adminRouter);
 
 // Health check
 app.get('/api/health', (req, res) => {

@@ -8,6 +8,7 @@ import NomineeProfile from './pages/NomineeProfile';
 import Nominate from './pages/Nominate';
 import Results from './pages/Results';
 import Admin from './pages/Admin';
+import TopNominees from './pages/TopNominees';
 
 export default function App() {
   return (
@@ -20,6 +21,7 @@ export default function App() {
           <Route path="/categories/:slug" element={<CategoryDetail />} />
           <Route path="/nominees/:id" element={<NomineeProfile />} />
           <Route path="/nominate" element={<Nominate />} />
+          <Route path="/nominees" element={<TopNominees />} />
           <Route path="/results" element={<Results />} />
           <Route path="/admin" element={<Admin />} />
         </Routes>

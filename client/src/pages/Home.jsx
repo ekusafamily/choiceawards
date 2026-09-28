@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import apiClient from '../api/client';
 import HeroSection from '../components/HeroSection';
 import StatsBar from '../components/StatsBar';
@@ -9,16 +8,40 @@ import { Target, CheckCircle2, Globe, Sparkles, HeartHandshake, Award } from 'lu
 export default function Home() {
   const [categories, setCategories] = useState([]);
   const [stats, setStats] = useState({ categoriesCount: 19, nomineesCount: 0, votesCount: 0 });
+  const [nomineeCountMap, setNomineeCountMap] = useState({});
+  const [topNomineeMap, setTopNomineeMap] = useState({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const [catsRes, statsRes] = await Promise.all([
+        const [catsRes, statsRes, nomRes] = await Promise.all([
           apiClient.get('/categories'),
           apiClient.get('/stats').catch(() => ({ data: null })),
+          apiClient.get('/nominees').catch(() => ({ data: [] })),
         ]);
-        setCategories(catsRes.data);
+
+        // Count nominees per category for sorting + build top-3 map
+        const nominees = nomRes.data || [];
+        const countMap = {};
+        const top3Map = {};
+        nominees.forEach((n) => {
+          countMap[n.category_id] = (countMap[n.category_id] || 0) + 1;
+          // nominees sorted desc by total_points from backend — keep first 3
+          if (!top3Map[n.category_id]) top3Map[n.category_id] = [];
+          if (top3Map[n.category_id].length < 3) {
+            top3Map[n.category_id].push(n);
+          }
+        });
+
+        // Sort categories by nominee count descending
+        const sorted = (catsRes.data || []).slice().sort(
+          (a, b) => (countMap[b.id] || 0) - (countMap[a.id] || 0)
+        );
+
+        setCategories(sorted);
+        setNomineeCountMap(countMap);
+        setTopNomineeMap(top3Map);
         if (statsRes.data) {
           setStats(statsRes.data);
         }
@@ -61,7 +84,7 @@ export default function Home() {
             <div className="initiative-header">
               <span className="initiative-number-badge">1</span>
               <div>
-                <h2>Introduction</h2>
+                <h2>INTRO</h2>
                 <div className="initiative-tagline">DeKUT Student Recognition Initiative</div>
               </div>
             </div>
@@ -78,7 +101,7 @@ export default function Home() {
               <div className="initiative-platform-callout">
                 <Globe size={22} className="platform-icon" />
                 <p>
-                  The awards will be hosted through <strong>dekutso.com</strong>, providing a central online platform for nominations, nominee profiles, voting, announcements, and final results.
+                  Vote for your favourite Personalities and groups
                 </p>
               </div>
             </div>
@@ -146,7 +169,12 @@ export default function Home() {
                   </h3>
                   <div className="categories-grid" style={{ marginBottom: 'var(--space-2xl)' }}>
                     {individualCategories.map((cat) => (
-                      <CategoryCard key={cat.id} category={cat} />
+                      <CategoryCard
+                        key={cat.id}
+                        category={cat}
+                        nomineeCount={nomineeCountMap[cat.id] || 0}
+                        topNominees={topNomineeMap[cat.id] || []}
+                      />
                     ))}
                   </div>
                 </>
@@ -159,7 +187,12 @@ export default function Home() {
                   </h3>
                   <div className="categories-grid">
                     {orgCategories.map((cat) => (
-                      <CategoryCard key={cat.id} category={cat} />
+                      <CategoryCard
+                        key={cat.id}
+                        category={cat}
+                        nomineeCount={nomineeCountMap[cat.id] || 0}
+                        topNominees={topNomineeMap[cat.id] || []}
+                      />
                     ))}
                   </div>
                 </>
@@ -173,11 +206,7 @@ export default function Home() {
             </>
           )}
 
-          <div style={{ textAlign: 'center', marginTop: 'var(--space-2xl)' }}>
-            <Link to="/categories" className="btn btn-outline" id="view-all-categories-btn">
-              View All Categories
-            </Link>
-          </div>
+
         </div>
       </section>
 
@@ -216,7 +245,7 @@ export default function Home() {
               {
                 step: '03',
                 title: 'Vote',
-                desc: 'Support your favourite nominees by purchasing votes. KSh 10 = 10 points.',
+                desc: 'Support your favourite nominees by voting',
               },
             ].map((item) => (
               <div

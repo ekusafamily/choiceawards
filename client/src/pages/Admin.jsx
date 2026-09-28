@@ -6,8 +6,9 @@ import {
   Clock, Search, UploadCloud, Loader2
 } from 'lucide-react';
 import apiClient from '../api/client';
-
-const ADMIN_PASSCODE = 'dekut2026';
+import CourseSelect from '../components/CourseSelect';
+import CategorySelect from '../components/CategorySelect';
+import YearSelect from '../components/YearSelect';
 
 export default function Admin() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -15,6 +16,7 @@ export default function Admin() {
   });
   const [passcode, setPasscode] = useState('');
   const [authError, setAuthError] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false);
 
   // Dashboard state
   const [activeTab, setActiveTab] = useState('nominations'); // 'nominations' | 'nominees' | 'categories'
@@ -44,14 +46,41 @@ export default function Admin() {
   const modalFileInputRef = useRef(null);
 
   // Check login
-  function handleLogin(e) {
+  async function handleLogin(e) {
     e.preventDefault();
-    if (passcode.trim() === ADMIN_PASSCODE) {
-      sessionStorage.setItem('cca_admin_auth', 'true');
-      setIsAuthenticated(true);
-      setAuthError('');
-    } else {
-      setAuthError('Invalid administrator passcode. Try: dekut2026');
+    const enteredPasscode = passcode.trim();
+    if (!enteredPasscode) return;
+
+    setIsVerifying(true);
+    setAuthError('');
+
+    try {
+      // Primary: Verify with backend API (reads ADMIN_PASSWORD dynamically from server .env)
+      const res = await apiClient.post('/admin/login', { passcode: enteredPasscode });
+      if (res.data?.success) {
+        sessionStorage.setItem('cca_admin_auth', 'true');
+        setIsAuthenticated(true);
+        setAuthError('');
+        return;
+      }
+    } catch (err) {
+      if (err.response && err.response.status === 401) {
+        setAuthError(err.response.data?.error?.message || 'Invalid administrator passcode. Please try again.');
+        return;
+      }
+
+      // Offline / network fallback: Check against client .env variable if configured
+      const clientEnvPasscode = import.meta.env.VITE_ADMIN_PASSCODE;
+      if (clientEnvPasscode && enteredPasscode === clientEnvPasscode.trim()) {
+        sessionStorage.setItem('cca_admin_auth', 'true');
+        setIsAuthenticated(true);
+        setAuthError('');
+        return;
+      }
+
+      setAuthError(err.response?.data?.error?.message || 'Authentication error. Please check server connection.');
+    } finally {
+      setIsVerifying(false);
     }
   }
 
@@ -245,9 +274,10 @@ export default function Admin() {
                 type="password"
                 id="admin_passcode"
                 className="form-control"
-                placeholder="Enter passcode (default: dekut2026)"
+                placeholder="Enter administrator passcode"
                 value={passcode}
                 onChange={(e) => setPasscode(e.target.value)}
+                disabled={isVerifying}
                 autoFocus
                 required
               />
@@ -260,8 +290,19 @@ export default function Admin() {
               </div>
             )}
 
-            <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>
-              Access Admin Dashboard
+            <button
+              type="submit"
+              className="btn btn-primary"
+              style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+              disabled={isVerifying}
+            >
+              {isVerifying ? (
+                <>
+                  <Loader2 size={16} className="spin-icon" /> Verifying Passcode...
+                </>
+              ) : (
+                'Access Admin Dashboard'
+              )}
             </button>
           </form>
 
@@ -684,24 +725,19 @@ export default function Admin() {
 
                 <div className="form-group">
                   <label>Award Category *</label>
-                  <select
-                    className="form-control"
+                  <CategorySelect
                     value={newNominee.category_id}
+                    categories={categories}
                     onChange={(e) => setNewNominee({ ...newNominee, category_id: e.target.value })}
                     required
-                  >
-                    {categories.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
+                    placeholder="Select category..."
+                  />
                 </div>
 
                 {/* Display Image Upload with 500KB limit */}
                 <div className="form-group">
                   <label>
-                    Display Image <span className="label-subtext">(Max 500KB • Stored in Supabase)</span>
+                    Display Image <span className="label-subtext">(Max 500KB)</span>
                   </label>
                   <div style={{ display: 'flex', gap: 'var(--space-md)', alignItems: 'center' }}>
                     {newNominee.photo_url ? (
@@ -758,29 +794,20 @@ export default function Admin() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-md)' }}>
                   <div className="form-group">
                     <label>Course / Programme</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      placeholder="e.g. BSc Computer Science"
+                    <CourseSelect
                       value={newNominee.course}
                       onChange={(e) => setNewNominee({ ...newNominee, course: e.target.value })}
+                      placeholder="Select course..."
                     />
                   </div>
 
                   <div className="form-group">
                     <label>Year of Study</label>
-                    <select
-                      className="form-control"
+                    <YearSelect
                       value={newNominee.year_of_study}
                       onChange={(e) => setNewNominee({ ...newNominee, year_of_study: e.target.value })}
-                    >
-                      <option value="1">Year 1</option>
-                      <option value="2">Year 2</option>
-                      <option value="3">Year 3</option>
-                      <option value="4">Year 4</option>
-                      <option value="5">Year 5</option>
-                      <option value="postgrad">Postgraduate</option>
-                    </select>
+                      placeholder="Select year..."
+                    />
                   </div>
                 </div>
 

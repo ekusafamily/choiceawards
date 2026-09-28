@@ -1,6 +1,9 @@
 import { useState, useRef } from 'react';
 import { UploadCloud, CheckCircle, AlertCircle, X, Image as ImageIcon, Loader2 } from 'lucide-react';
 import apiClient from '../api/client';
+import CourseSelect from './CourseSelect';
+import CategorySelect from './CategorySelect';
+import YearSelect from './YearSelect';
 
 const MAX_IMAGE_SIZE_BYTES = 500 * 1024; // 500 KB limit
 
@@ -35,7 +38,7 @@ export default function NominationForm({ categories = [] }) {
     setFormData((prev) => ({ ...prev, [name]: value }));
   }
 
-  // Handle image file selection & immediate upload to Supabase Storage
+  // Handle image file selection & immediate upload
   async function handleImageSelect(e) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -64,7 +67,7 @@ export default function NominationForm({ categories = [] }) {
     setImagePreview(previewUrl);
     setImageFile(file);
 
-    // 4. Upload to Supabase Storage via /api/upload
+    // 4. Upload via /api/upload
     setUploadingImage(true);
     const uploadData = new FormData();
     uploadData.append('image', file);
@@ -81,7 +84,7 @@ export default function NominationForm({ categories = [] }) {
         setUploadSuccess(true);
       }
     } catch (err) {
-      const msg = err.response?.data?.error?.message || 'Failed to upload image to Supabase Storage.';
+      const msg = err.response?.data?.error?.message || 'Failed to upload image. Please try again.';
       setImageError(msg);
     } finally {
       setUploadingImage(false);
@@ -183,27 +186,21 @@ export default function NominationForm({ categories = [] }) {
 
         <div className="form-group">
           <label htmlFor="category_id">Award Category *</label>
-          <select
+          <CategorySelect
             id="category_id"
             name="category_id"
-            className="form-control"
             value={formData.category_id}
+            categories={categories}
             onChange={handleChange}
             required
-          >
-            <option value="">Select a category...</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.name}
-              </option>
-            ))}
-          </select>
+            placeholder="Select an award category..."
+          />
         </div>
 
-        {/* Display Image Upload (Max 500KB, Supabase Storage) */}
+        {/* Display Image Upload (Max 500KB) */}
         <div className="form-group image-upload-group">
           <label>
-            Nominee Display Image <span className="label-subtext">(Max 500KB • Stored in Supabase)</span>
+            Nominee Display Image <span className="label-subtext">(Max 500KB)</span>
           </label>
 
           {!useUrlFallback ? (
@@ -241,13 +238,13 @@ export default function NominationForm({ categories = [] }) {
 
                     {uploadingImage && (
                       <div className="upload-status uploading">
-                        <Loader2 size={14} className="spin-icon" /> Uploading to Supabase Storage...
+                        <Loader2 size={14} className="spin-icon" /> Uploading image...
                       </div>
                     )}
 
                     {uploadSuccess && (
                       <div className="upload-status success">
-                        <CheckCircle size={14} /> Saved in Supabase Bucket
+                        <CheckCircle size={14} /> Image uploaded successfully
                       </div>
                     )}
 
@@ -314,34 +311,24 @@ export default function NominationForm({ categories = [] }) {
 
         <div className="form-group">
           <label htmlFor="course">Course / Programme</label>
-          <input
-            type="text"
+          <CourseSelect
             id="course"
             name="course"
-            className="form-control"
-            placeholder="e.g., BSc Computer Science"
             value={formData.course}
             onChange={handleChange}
+            placeholder="Select or search course / programme..."
           />
         </div>
 
         <div className="form-group">
           <label htmlFor="year_of_study">Year of Study</label>
-          <select
+          <YearSelect
             id="year_of_study"
             name="year_of_study"
-            className="form-control"
             value={formData.year_of_study}
             onChange={handleChange}
-          >
-            <option value="">Select year...</option>
-            <option value="1">Year 1</option>
-            <option value="2">Year 2</option>
-            <option value="3">Year 3</option>
-            <option value="4">Year 4</option>
-            <option value="5">Year 5</option>
-            <option value="postgrad">Postgraduate</option>
-          </select>
+            placeholder="Select year of study..."
+          />
         </div>
 
         <div className="form-group">

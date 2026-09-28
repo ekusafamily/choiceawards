@@ -1,6 +1,7 @@
-import { User } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { User, Trophy } from 'lucide-react';
 
-export default function LeaderboardTable({ nominees = [], categoryName = '' }) {
+export default function LeaderboardTable({ nominees = [], categoryName = '', onVote }) {
   if (nominees.length === 0) {
     return (
       <div className="leaderboard">
@@ -28,6 +29,7 @@ export default function LeaderboardTable({ nominees = [], categoryName = '' }) {
             <th style={{ width: '60px', textAlign: 'center' }}>Pos</th>
             <th>Nominee</th>
             <th style={{ textAlign: 'right' }}>Points</th>
+            {onVote && <th style={{ width: '100px', textAlign: 'center' }}>Vote</th>}
           </tr>
         </thead>
         <tbody>
@@ -44,37 +46,51 @@ export default function LeaderboardTable({ nominees = [], categoryName = '' }) {
                   {position}
                 </td>
                 <td>
-                  <div className="nominee-cell">
-                    {nominee.photo_url ? (
-                      <img src={nominee.photo_url} alt={nominee.name} />
-                    ) : (
-                      <div
-                        style={{
-                          width: 40,
-                          height: 40,
-                          borderRadius: '50%',
-                          background: 'var(--color-bg-alt)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        <User size={20} color="var(--color-border)" />
-                      </div>
-                    )}
-                    <div>
-                      <strong>{nominee.name}</strong>
-                      {nominee.course && (
-                        <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-                          {nominee.course}
+                  <Link to={`/nominees/${nominee.id}`} className="nominee-cell-link">
+                    <div className="nominee-cell">
+                      {nominee.photo_url ? (
+                        <img src={nominee.photo_url} alt={nominee.name} />
+                      ) : (
+                        <div
+                          style={{
+                            width: 40,
+                            height: 40,
+                            borderRadius: '50%',
+                            background: 'var(--color-bg-alt)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <User size={20} color="var(--color-border)" />
                         </div>
                       )}
+                      <div>
+                        <strong>{nominee.name}</strong>
+                        {nominee.course && (
+                          <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+                            {nominee.course}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  </Link>
                 </td>
                 <td className="points-cell">
                   {(nominee.total_points || 0).toLocaleString()}
                 </td>
+                {onVote && (
+                  <td style={{ textAlign: 'center' }}>
+                    <button
+                      className="btn btn-gold btn-sm leaderboard-vote-btn"
+                      onClick={() => onVote(nominee)}
+                      id={`lb-vote-btn-${nominee.id}`}
+                    >
+                      <Trophy size={12} />
+                      Vote
+                    </button>
+                  </td>
+                )}
               </tr>
             );
           })}
@@ -83,3 +99,4 @@ export default function LeaderboardTable({ nominees = [], categoryName = '' }) {
     </div>
   );
 }
+
