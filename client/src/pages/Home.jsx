@@ -4,6 +4,7 @@ import apiClient from '../api/client';
 import HeroSection from '../components/HeroSection';
 import StatsBar from '../components/StatsBar';
 import CategoryCard from '../components/CategoryCard';
+import { Target, CheckCircle2, Globe, Sparkles, HeartHandshake, Award } from 'lucide-react';
 
 export default function Home() {
   const [categories, setCategories] = useState([]);
@@ -33,6 +34,16 @@ export default function Home() {
   const individualCategories = categories.filter((c) => c.type === 'individual');
   const orgCategories = categories.filter((c) => c.type === 'organization');
 
+  const purposePillars = [
+    'Celebrate outstanding DeKUT students and student leaders.',
+    'Recognize talent, creativity, leadership, innovation, and service.',
+    'Give students an opportunity to recognize their peers.',
+    'Promote positive participation in university life.',
+    'Recognize active student associations and clubs.',
+    'Provide visibility to student talent and initiatives.',
+    'Create an annual platform for celebrating the DeKUT student community.',
+  ];
+
   return (
     <>
       <HeroSection />
@@ -41,6 +52,74 @@ export default function Home() {
         nomineesCount={stats.nomineesCount}
         votesCount={stats.votesCount}
       />
+
+      {/* 1. Introduction & 2. Purpose of the Initiative */}
+      <section className="section initiative-overview-section" id="about-initiative">
+        <div className="container">
+          {/* 1. Introduction */}
+          <div className="initiative-card">
+            <div className="initiative-header">
+              <span className="initiative-number-badge">1</span>
+              <div>
+                <h2>Introduction</h2>
+                <div className="initiative-tagline">DeKUT Student Recognition Initiative</div>
+              </div>
+            </div>
+            <hr className="gold-line initiative-gold-line" />
+
+            <div className="initiative-body">
+              <p className="initiative-lead-text">
+                The <strong>Comrade Choice Awards</strong> is a proposed student awards initiative designed specifically for the students of <strong>Dedan Kimathi University of Technology (DeKUT)</strong>.
+              </p>
+              <p className="initiative-sub-text">
+                The initiative seeks to create a platform through which DeKUT students can recognize, celebrate, and appreciate fellow students, student leaders, associations, clubs, creators, athletes, entrepreneurs, and other personalities who contribute to campus life.
+              </p>
+
+              <div className="initiative-platform-callout">
+                <Globe size={22} className="platform-icon" />
+                <p>
+                  The awards will be hosted through <strong>dekutso.com</strong>, providing a central online platform for nominations, nominee profiles, voting, announcements, and final results.
+                </p>
+              </div>
+            </div>
+
+            <div className="initiative-divider-line" />
+
+            {/* 2. Purpose of the Initiative */}
+            <div className="initiative-header" style={{ marginTop: 'var(--space-2xl)' }}>
+              <span className="initiative-number-badge">2</span>
+              <div>
+                <h2>Purpose of the Initiative</h2>
+                <div className="initiative-tagline">Core Objectives & Impact</div>
+              </div>
+            </div>
+            <hr className="gold-line initiative-gold-line" />
+
+            <p className="purpose-intro-text">
+              The Comrade Choice Awards aims to:
+            </p>
+
+            <div className="purpose-grid">
+              {purposePillars.map((text, idx) => (
+                <div key={idx} className="purpose-item-card">
+                  <div className="purpose-item-icon">
+                    <CheckCircle2 size={18} />
+                  </div>
+                  <span className="purpose-item-text">{text}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="student-driven-banner">
+              <HeartHandshake size={28} className="banner-icon" />
+              <div className="banner-text">
+                <strong>Student-Centered & Student-Driven</strong>
+                <p>The initiative will be student-centered and student-driven, with participation coming from across the DeKUT student community.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Featured Categories */}
       <section className="section" id="featured-categories">
