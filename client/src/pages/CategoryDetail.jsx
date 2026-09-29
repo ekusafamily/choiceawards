@@ -30,21 +30,18 @@ export default function CategoryDetail() {
     fetch();
   }, [slug]);
 
-  async function handleVote(voteData) {
-    const { data } = await apiClient.post('/votes', voteData);
-    // Update points for the voted nominee in-place
+  function handleVoteSuccess(voteResult) {
     setNominees((prev) =>
       prev
         .map((n) =>
-          n.id === voteData.nominee_id
-            ? { ...n, total_points: (n.total_points || 0) + data.points }
+          n.id === voteResult.nominee_id
+            ? { ...n, total_points: (n.total_points || 0) + (voteResult.points || 0) }
             : n
         )
         .sort((a, b) => (b.total_points || 0) - (a.total_points || 0))
     );
-    setVotingFor(null);
     setVoteSuccess(true);
-    setTimeout(() => setVoteSuccess(false), 4000);
+    setTimeout(() => setVoteSuccess(false), 5000);
   }
 
   if (loading) {
@@ -188,7 +185,7 @@ export default function CategoryDetail() {
         <VoteModal
           nominee={votingFor}
           onClose={() => setVotingFor(null)}
-          onVote={handleVote}
+          onSuccess={handleVoteSuccess}
         />
       )}
     </div>

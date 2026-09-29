@@ -25,15 +25,13 @@ export default function NomineeProfile() {
     fetch();
   }, [id]);
 
-  async function handleVote(voteData) {
-    const { data } = await apiClient.post('/votes', voteData);
+  function handleVoteSuccess(voteResult) {
     setNominee((prev) => ({
       ...prev,
-      total_points: (prev.total_points || 0) + data.points,
+      total_points: (prev?.total_points || 0) + (voteResult.points || 0),
     }));
-    setShowVoteModal(false);
     setVoteSuccess(true);
-    setTimeout(() => setVoteSuccess(false), 4000);
+    setTimeout(() => setVoteSuccess(false), 5000);
   }
 
   function handleShare(platform) {
@@ -218,7 +216,7 @@ export default function NomineeProfile() {
         <VoteModal
           nominee={nominee}
           onClose={() => setShowVoteModal(false)}
-          onVote={handleVote}
+          onSuccess={handleVoteSuccess}
         />
       )}
     </div>
