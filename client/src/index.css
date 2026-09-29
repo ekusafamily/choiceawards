@@ -1379,6 +1379,7 @@ select.form-control {
 
 .profile-share {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-sm);
   margin-top: var(--space-lg);
 }
@@ -1401,6 +1402,13 @@ select.form-control {
 .share-btn:hover {
   border-color: var(--color-primary);
   color: var(--color-primary);
+}
+
+.share-btn.copied {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: rgba(27, 94, 32, 0.08);
+  font-weight: 600;
 }
 
 @media (max-width: 768px) {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, BookOpen, Trophy, Share2, User } from 'lucide-react';
+import { ArrowLeft, BookOpen, Trophy, Share2, User, Copy, Check } from 'lucide-react';
 import apiClient from '../api/client';
 import VoteModal from '../components/VoteModal';
 
@@ -10,6 +10,7 @@ export default function NomineeProfile() {
   const [loading, setLoading] = useState(true);
   const [showVoteModal, setShowVoteModal] = useState(false);
   const [voteSuccess, setVoteSuccess] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     async function fetch() {
@@ -25,6 +26,49 @@ export default function NomineeProfile() {
     fetch();
   }, [id]);
 
+  // Dynamically update document title and OpenGraph tags in DOM
+  useEffect(() => {
+    if (!nominee) return;
+    document.title = `${nominee.name} - DeKUTSO Comrade Choice Award 2026`;
+
+    function setMeta(property, content) {
+      if (!content) return;
+      let el = document.querySelector(`meta[property="${property}"]`);
+      if (!el) {
+        el = document.createElement('meta');
+        el.setAttribute('property', property);
+        document.head.appendChild(el);
+      }
+      el.setAttribute('content', content);
+    }
+
+    function setTwitterMeta(name, content) {
+      if (!content) return;
+      let el = document.querySelector(`meta[name="${name}"]`);
+      if (!el) {
+        el = document.createElement('meta');
+        el.setAttribute('name', name);
+        document.head.appendChild(el);
+      }
+      el.setAttribute('content', content);
+    }
+
+    const catName = nominee.categories?.name || 'Category Nominee';
+    const shareDesc = `Support ${nominee.name} (${nominee.course || 'DeKUT'}) in the DeKUTSO Comrade Choice Award 2026. Vote now!`;
+
+    setMeta('og:title', `Vote for ${nominee.name} • ${catName}`);
+    setMeta('og:description', shareDesc);
+    setMeta('og:type', 'profile');
+    if (nominee.photo_url) {
+      setMeta('og:image', nominee.photo_url);
+      setMeta('og:image:secure_url', nominee.photo_url);
+      setTwitterMeta('twitter:image', nominee.photo_url);
+    }
+    setTwitterMeta('twitter:card', 'summary_large_image');
+    setTwitterMeta('twitter:title', `Vote for ${nominee.name} • ${catName}`);
+    setTwitterMeta('twitter:description', shareDesc);
+  }, [nominee]);
+
   function handleVoteSuccess(voteResult) {
     setNominee((prev) => ({
       ...prev,
@@ -35,16 +79,32 @@ export default function NomineeProfile() {
   }
 
   function handleShare(platform) {
-    const url = window.location.href;
+    // Smart share URL that renders rich preview card with nominee's bucket photo on WhatsApp/Twitter/Facebook
+    const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+    const serverBase = apiBase.replace(/\/api\/?$/, '');
+    const shareUrl = `${serverBase}/share/nominee/${nominee.id}`;
     const text = `Vote for ${nominee.name} in the DeKUTSO Comrade Choice Award 2026!`;
 
+    if (platform === 'copy') {
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 3000);
+      }).catch(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 3000);
+      });
+      return;
+    }
+
     const urls = {
-      whatsapp: `https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`,
-      twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
-      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+      whatsapp: `https://wa.me/?text=${encodeURIComponent(`${text}\n${shareUrl}`)}`,
+      twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`,
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
     };
 
-    window.open(urls[platform], '_blank', 'noopener,noreferrer');
+    if (urls[platform]) {
+      window.open(urls[platform], '_blank', 'noopener,noreferrer');
+    }
   }
 
   if (loading) {
@@ -169,7 +229,7 @@ export default function NomineeProfile() {
                 Vote for {nominee.name.split(' ')[0]}
               </button>
 
-              <div className="profile-share">
+              <div className="profile-share" style={{ marginTop: 0 }}>
                 <button
                   className="share-btn"
                   onClick={() => handleShare('whatsapp')}
@@ -190,6 +250,14 @@ export default function NomineeProfile() {
                   aria-label="Share on Facebook"
                 >
                   <Share2 size={14} /> Facebook
+                </button>
+                <button
+                  className={`share-btn ${copied ? 'copied' : ''}`}
+                  onClick={() => handleShare('copy')}
+                  aria-label="Copy nominee profile link"
+                  id="profile-copy-btn"
+                >
+                  {copied ? <Check size={14} color="var(--color-primary)" /> : <Copy size={14} />} {copied ? 'Copied!' : 'Copy Link'}
                 </button>
               </div>
             </div>
