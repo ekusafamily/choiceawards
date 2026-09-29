@@ -221,13 +221,12 @@ app.get('/api/health', (req, res) => {
 });
 
 // Catch-all: If someone opens a frontend route (/admin, /nominees, etc.) on the backend, redirect to CLIENT_URL
-app.get('*', (req, res, next) => {
-  if (req.path.startsWith('/api') || req.path.startsWith('/share')) {
-    return next();
-  }
-  if (process.env.CLIENT_URL) {
-    const target = `${process.env.CLIENT_URL.replace(/\/$/, '')}${req.originalUrl}`;
-    return res.redirect(302, target);
+app.use((req, res, next) => {
+  if (req.method === 'GET' && !req.path.startsWith('/api') && !req.path.startsWith('/share')) {
+    if (process.env.CLIENT_URL) {
+      const target = `${process.env.CLIENT_URL.replace(/\/$/, '')}${req.originalUrl}`;
+      return res.redirect(302, target);
+    }
   }
   next();
 });
