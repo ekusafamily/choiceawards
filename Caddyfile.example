@@ -1,0 +1,45 @@
+# ========================================================
+# Caddyfile for DeKUTSO Comrade Choice Awards
+# Location: /etc/caddy/Caddyfile
+#
+# Caddy automatically provisions and renews Let's Encrypt
+# HTTPS certificates with zero configuration required!
+# ========================================================
+
+# Replace with your actual domain (e.g. awards.yourdomain.com)
+# OR if using raw IP without a domain yet, use: http://YOUR_VPS_IP
+yourdomain.com, www.yourdomain.com {
+
+    # 1. High-performance compression
+    encode gzip zstd
+
+    # 2. Route all API traffic to Node.js backend on port 5000
+    handle /api/* {
+        reverse_proxy 127.0.0.1:5000
+    }
+
+    # 3. Route social share preview cards to Node.js backend
+    handle /share/* {
+        reverse_proxy 127.0.0.1:5000
+    }
+
+    # 4. Protect sensitive files from automated internet scanners
+    @blocked path */.*
+    respond @blocked 404
+
+    # ========================================================
+    # Option A (Recommended): Caddy serves React build directly
+    # (Super fast, no need to run 'serve' in PM2!)
+    # ========================================================
+    root * /var/www/choiceawards/client/dist
+    file_server
+    try_files {path} /index.html
+
+    # ========================================================
+    # Option B: If you prefer keeping 'serve' running on port 3000:
+    # (Comment out Option A and uncomment the lines below)
+    # ========================================================
+    # handle {
+    #     reverse_proxy 127.0.0.1:3000
+    # }
+}

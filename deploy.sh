@@ -29,8 +29,10 @@ else
     echo "⚠️ PM2 not found. Install globally with: sudo npm install -g pm2"
 fi
 
-echo "🔄 [5/5] Reloading Nginx..."
-if command -v nginx >/dev/null 2>&1; then
+echo "🔄 [5/5] Reloading Web Server (Caddy / Nginx)..."
+if command -v caddy >/dev/null 2>&1; then
+    sudo systemctl reload caddy || sudo caddy reload --config /etc/caddy/Caddyfile
+elif command -v nginx >/dev/null 2>&1; then
     sudo nginx -t && sudo systemctl reload nginx
 fi
 
