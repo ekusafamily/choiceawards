@@ -3,6 +3,40 @@ const supabase = require('../config/supabase');
 
 const router = express.Router();
 
+const BOT_USER_AGENTS = [
+  'facebookexternalhit',
+  'facebot',
+  'whatsapp',
+  'twitterbot',
+  'linkedinbot',
+  'telegrambot',
+  'discordbot',
+  'slackbot',
+  'skypeuripreview',
+  'applebot',
+  'googlebot',
+  'bingbot',
+  'yandexbot',
+  'duckduckbot',
+  'vkshare',
+  'w3c_validator',
+  'redditbot',
+  'embedly',
+  'quora link preview',
+  'showyoubot',
+  'outbrain',
+  'pinterest',
+  'crawler',
+  'spider',
+  'bot'
+];
+
+function isSocialCrawler(req) {
+  if (req.query.crawler === '1' || req.query.bot === '1') return true;
+  const ua = (req.get('user-agent') || '').toLowerCase();
+  return BOT_USER_AGENTS.some(bot => ua.includes(bot));
+}
+
 function escapeHtml(str) {
   if (!str) return '';
   return String(str)
@@ -22,23 +56,88 @@ function getImageType(url) {
   return 'image/png';
 }
 
+function getServerBaseUrl(req) {
+  if (process.env.SERVER_URL) {
+    return process.env.SERVER_URL.replace(/\/$/, '');
+  }
+  const proto = req.get('x-forwarded-proto') || req.protocol || 'http';
+  const host = req.get('x-forwarded-host') || req.get('host') || 'localhost:5000';
+  return `${proto}://${host}`;
+}
+
 function getClientBaseUrl(req) {
-  // 1. Explicit env var if set
   if (process.env.CLIENT_URL) {
     return process.env.CLIENT_URL.replace(/\/$/, '');
   }
-  // 2. Check referer / origin header
   const origin = req.get('origin');
   if (origin && origin.startsWith('http')) {
     return origin.replace(/\/$/, '');
   }
-  // 3. Fallback based on host or localhost
   const host = req.get('host') || '';
   if (host.includes('localhost') || host.includes('127.0.0.1')) {
     return 'http://localhost:3000';
   }
+  // If hosted on render, frontend is typically -client when backend is -server
+  if (host.includes('-server.onrender.com')) {
+    return `https://${host.replace('-server.onrender.com', '-client.onrender.com')}`;
+  }
   return `https://${host}`;
 }
+
+// Proxied image endpoint that strips Supabase's blocking 'x-robots-tag: none' header
+router.get('/image/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id || !supabase) {
+      return res.status(404).send('Not found');
+    }
+
+    const { data: nominee, error } = await supabase
+      .from('nominees')
+      .select('photo_url')
+      .eq('id', id)
+      .single();
+
+    if (error || !nominee || !nominee.photo_url) {
+      return res.status(404).send('Image not found');
+    }
+
+    // Handle base64 fallback
+    if (nominee.photo_url.startsWith('data:')) {
+      const matches = nominee.photo_url.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+      if (matches && matches.length === 3) {
+        const mime = matches[1];
+        const buffer = Buffer.from(matches[2], 'base64');
+        res.setHeader('Content-Type', mime);
+        res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=86400');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('X-Robots-Tag', 'all');
+        return res.send(buffer);
+      }
+    }
+
+    // Fetch the bucket image from Supabase
+    const upstreamRes = await fetch(nominee.photo_url);
+    if (!upstreamRes.ok) {
+      return res.redirect(nominee.photo_url);
+    }
+
+    const contentType = upstreamRes.headers.get('content-type') || getImageType(nominee.photo_url);
+    const arrayBuffer = await upstreamRes.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=86400');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    // Crucial: Supabase storage returns 'x-robots-tag: none', which makes WhatsApp / Twitter reject the image!
+    // We override it with 'all' so preview crawlers always render it:
+    res.setHeader('X-Robots-Tag', 'all');
+    return res.send(buffer);
+  } catch (err) {
+    console.error('Error serving nominee proxy image:', err);
+    return res.status(500).send('Error loading image');
+  }
+});
 
 async function renderNomineeSharePage(req, res) {
   try {
@@ -49,10 +148,11 @@ async function renderNomineeSharePage(req, res) {
     }
 
     const clientBase = getClientBaseUrl(req);
-    const fallbackImage = `${clientBase}/dekutso-logo.png`;
+    const serverBase = getServerBaseUrl(req);
+    const targetUrl = `${clientBase}/nominees/${id}`;
 
     if (!supabase) {
-      return res.redirect(`${clientBase}/nominees/${id}`);
+      return res.redirect(302, targetUrl);
     }
 
     // Fetch nominee and their category from Supabase
@@ -64,7 +164,13 @@ async function renderNomineeSharePage(req, res) {
 
     if (error || !nominee) {
       console.warn(`Nominee share lookup not found for ID: ${id}`);
-      return res.redirect(`${clientBase}/nominees`);
+      return res.redirect(302, `${clientBase}/nominees`);
+    }
+
+    // Human visitor (regular browser): redirect immediately to frontend profile page
+    const isBot = isSocialCrawler(req);
+    if (!isBot && req.query.preview !== '1') {
+      return res.redirect(302, targetUrl);
     }
 
     const nomineeName = nominee.name || 'Nominee';
@@ -72,18 +178,22 @@ async function renderNomineeSharePage(req, res) {
     const course = nominee.course ? ` (${nominee.course})` : '';
     const points = (nominee.total_points || 0).toLocaleString();
 
-    // Priority: Bucket image url from nominee, or fallback to DeKUTSO logo
-    const photoUrl = nominee.photo_url || fallbackImage;
-    const imageType = getImageType(photoUrl);
+    // Use our server proxy URL which cleanses the x-robots-tag header
+    const proxyImageUrl = `${serverBase}/share/image/${nominee.id}`;
+    const directPhotoUrl = (nominee.photo_url && !nominee.photo_url.startsWith('data:'))
+      ? nominee.photo_url
+      : proxyImageUrl;
+
+    const imageType = getImageType(nominee.photo_url || proxyImageUrl);
 
     const pageTitle = `Vote for ${nomineeName} • ${categoryName} | DeKUTSO Comrade Choice Award`;
     const shareTitle = `Vote for ${nomineeName} • ${categoryName}`;
-    const shareDescription = `Support ${nomineeName}${course} with ${points} points in the DeKUTSO Comrade Choice Award 2026. Tap to view profile & cast your M-Pesa vote!`;
-    const targetUrl = `${clientBase}/nominees/${nominee.id}`;
+    const shareDescription = `Support ${nomineeName}${course} with ${points} points in the DeKUTSO Comrade Choice Award 2026. Cast your M-Pesa vote!`;
 
-    // Return rich HTML with full OpenGraph / Twitter Cards for WhatsApp, X, Facebook, LinkedIn, Discord, etc.
+    // Return rich HTML with full OpenGraph / Twitter Cards for crawlers
+    // NOTE: NO meta refresh or JS redirect here so crawlers will NOT abandon the page!
     const html = `<!DOCTYPE html>
-<html lang="en">
+<html lang="en" prefix="og: https://ogp.me/ns#">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -97,12 +207,18 @@ async function renderNomineeSharePage(req, res) {
   <meta property="og:url" content="${escapeHtml(targetUrl)}">
   <meta property="og:title" content="${escapeHtml(shareTitle)}">
   <meta property="og:description" content="${escapeHtml(shareDescription)}">
-  <meta property="og:image" content="${escapeHtml(photoUrl)}">
-  <meta property="og:image:secure_url" content="${escapeHtml(photoUrl)}">
+  <meta property="og:image" content="${escapeHtml(proxyImageUrl)}">
+  <meta property="og:image:secure_url" content="${escapeHtml(proxyImageUrl)}">
   <meta property="og:image:type" content="${escapeHtml(imageType)}">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="Photo of ${escapeHtml(nomineeName)}">
+
+  <!-- Fallback direct storage image -->
+  <meta property="og:image" content="${escapeHtml(directPhotoUrl)}">
+
+  <!-- Legacy & WhatsApp crawler fallback link tag -->
+  <link rel="image_src" href="${escapeHtml(proxyImageUrl)}">
 
   <!-- Twitter / X Cards -->
   <meta name="twitter:card" content="summary_large_image">
@@ -110,14 +226,8 @@ async function renderNomineeSharePage(req, res) {
   <meta name="twitter:url" content="${escapeHtml(targetUrl)}">
   <meta name="twitter:title" content="${escapeHtml(shareTitle)}">
   <meta name="twitter:description" content="${escapeHtml(shareDescription)}">
-  <meta name="twitter:image" content="${escapeHtml(photoUrl)}">
+  <meta name="twitter:image" content="${escapeHtml(proxyImageUrl)}">
   <meta name="twitter:image:alt" content="Photo of ${escapeHtml(nomineeName)}">
-
-  <!-- Immediate Client Redirection for Humans -->
-  <script>
-    window.location.replace(${JSON.stringify(targetUrl)});
-  </script>
-  <meta http-equiv="refresh" content="0;url=${escapeHtml(targetUrl)}">
 
   <style>
     * { box-sizing: border-box; }
@@ -145,8 +255,8 @@ async function renderNomineeSharePage(req, res) {
       backdrop-filter: blur(12px);
     }
     .avatar {
-      width: 150px;
-      height: 150px;
+      width: 160px;
+      height: 160px;
       object-fit: cover;
       border-radius: 50%;
       border: 3.5px solid #d4a017;
@@ -189,16 +299,12 @@ async function renderNomineeSharePage(req, res) {
       font-size: 1rem;
       margin-top: 16px;
       box-shadow: 0 4px 14px rgba(212, 160, 23, 0.4);
-      transition: transform 0.15s ease;
-    }
-    .vote-btn:hover {
-      transform: translateY(-2px);
     }
   </style>
 </head>
 <body>
   <div class="card">
-    <img src="${escapeHtml(photoUrl)}" alt="${escapeHtml(nomineeName)}" class="avatar" />
+    <img src="${escapeHtml(proxyImageUrl)}" alt="${escapeHtml(nomineeName)}" class="avatar" />
     <span class="badge">${escapeHtml(categoryName)}</span>
     <h1>${escapeHtml(nomineeName)}</h1>
     <p class="subtitle">${escapeHtml(nominee.course || 'DeKUT Student')}</p>
@@ -214,7 +320,7 @@ async function renderNomineeSharePage(req, res) {
   } catch (err) {
     console.error('Error serving nominee share preview:', err);
     const clientBase = getClientBaseUrl(req);
-    return res.redirect(`${clientBase}/nominees`);
+    return res.redirect(302, `${clientBase}/nominees`);
   }
 }
 
