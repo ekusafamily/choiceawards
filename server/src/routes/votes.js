@@ -100,9 +100,14 @@ router.post('/initiate', async (req, res, next) => {
       });
     }
 
-    const numericAmount = Math.max(1, Math.round(Number(amount)));
+    const numericAmount = Math.round(Number(amount));
+    if (isNaN(numericAmount) || numericAmount < 10) {
+      return res.status(400).json({
+        error: { message: 'Minimum voting amount is KSh 10 (10 votes).' },
+      });
+    }
     const points = calculatePoints(numericAmount);
-    const description = nominee_name ? `Vote for ${nominee_name.slice(0, 18)}` : 'CCA Vote';
+    const description = nominee_name ? `Vote for ${nominee_name.slice(0, 15)}` : 'DeKUTSO CCA';
 
     // Call PayNexus STK Push API
     const initResult = await paynexus.initiatePayment({
@@ -256,9 +261,9 @@ router.post('/', async (req, res, next) => {
       });
     }
 
-    if (amount < 1) {
+    if (amount < 10) {
       return res.status(400).json({
-        error: { message: 'Minimum voting amount is 1 KES' },
+        error: { message: 'Minimum voting amount is KSh 10 (10 votes)' },
       });
     }
 
