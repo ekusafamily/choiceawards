@@ -80,8 +80,10 @@ export default function NomineeProfile() {
 
   function handleShare(platform) {
     // Smart share URL that renders rich preview card with nominee's bucket photo on WhatsApp/Twitter/Facebook
-    const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-    const serverBase = apiBase.replace(/\/api\/?$/, '');
+    const apiBase = import.meta.env.VITE_API_URL || '';
+    const serverBase = apiBase.startsWith('http')
+      ? apiBase.replace(/\/api\/?$/, '')
+      : window.location.origin;
     const shareUrl = `${serverBase}/share/nominee/${nominee.id}`;
     const text = `Vote for ${nominee.name} in the DeKUTSO Comrade Choice Award 2026!`;
 
