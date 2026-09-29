@@ -165,7 +165,7 @@ export default function NominationForm({ categories = [] }) {
       <h2>Submit a Nomination</h2>
       <hr className="gold-line" style={{ margin: 'var(--space-md) 0' }} />
       <p className="form-description">
-        Nominate an eligible individual or organization for the Comrade Choice Awards 2026.
+        Nominate an eligible individual or organization for the DeKUTSO Comrade Choice Award 2026.
         All nominations undergo review before nominees are officially published.
       </p>
 

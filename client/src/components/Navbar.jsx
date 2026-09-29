@@ -9,8 +9,8 @@ export default function Navbar() {
     <nav className="navbar" role="navigation" aria-label="Main navigation">
       <div className="navbar-inner">
         <Link to="/" className="navbar-brand" id="navbar-brand">
-          <Award size={28} />
-          <span>Comrade Choice Awards</span>
+          <img src="/dekutso-logo.png" alt="DeKUTSO Logo" className="navbar-brand-logo" />
+          <span className="navbar-brand-text">DeKUTSO Comrade Choice Award</span>
         </Link>
 
         <button

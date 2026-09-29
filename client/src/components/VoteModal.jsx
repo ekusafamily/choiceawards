@@ -203,8 +203,8 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
       <div className="modal voter-card-modal" onClick={(e) => e.stopPropagation()}>
         {/* Modal Header */}
         <div className="voter-modal-header">
-          <div className="voter-header-title">
-            <Trophy size={18} className="gold-accent-icon" />
+          <div className="voter-header-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <img src="/dekutso-logo.png" alt="DeKUTSO" style={{ height: '22px', width: 'auto', objectFit: 'contain' }} />
             <span>Cast Your Vote</span>
           </div>
           {step !== 'waiting' && (
@@ -320,7 +320,7 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
                 <CheckCircle2 size={18} /> Pay KES {currentAmount} & Cast {currentVotes} {currentVotes === 1 ? 'Vote' : 'Votes'}
               </button>
               <p className="voter-ballot-notice" style={{ marginTop: '8px' }}>
-                Secure M-Pesa Checkout • Official Comrade Choice Awards 2026
+                Secure M-Pesa Checkout • Official DeKUTSO Comrade Choice Award 2026
               </p>
             </div>
           </form>

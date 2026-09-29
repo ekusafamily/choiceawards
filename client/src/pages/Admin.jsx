@@ -255,13 +255,13 @@ export default function Admin() {
     return (
       <div className="page" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '80vh' }}>
         <div className="admin-login-card">
-          <div className="admin-login-icon">
-            <ShieldCheck size={48} color="var(--color-primary)" />
+          <div className="admin-login-icon" style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+            <img src="/dekutso-logo.png" alt="DeKUTSO" style={{ height: '64px', width: 'auto', objectFit: 'contain' }} />
           </div>
           <h2>DeKUTSO Admin Portal</h2>
           <hr className="gold-line" />
           <p className="admin-login-subtext">
-            Comrade Choice Awards 2026 • Review nominations, manage nominees & oversee results.
+            DeKUTSO Comrade Choice Award 2026 • Review nominations, manage nominees & oversee results.
           </p>
 
           <form onSubmit={handleLogin} style={{ marginTop: 'var(--space-lg)' }}>
@@ -308,7 +308,7 @@ export default function Admin() {
 
           <div style={{ marginTop: 'var(--space-xl)', textAlign: 'center' }}>
             <Link to="/" style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
-              ← Return to Comrade Choice Awards
+              ← Return to DeKUTSO Comrade Choice Award
             </Link>
           </div>
         </div>
@@ -539,7 +539,7 @@ export default function Admin() {
             <div className="admin-card-header">
               <div>
                 <h2>Published Nominees Directory</h2>
-                <p>Active candidates receiving votes in the Comrade Choice Awards 2026.</p>
+                <p>Active candidates receiving votes in the DeKUTSO Comrade Choice Award 2026.</p>
               </div>
 
               <button className="btn btn-gold btn-sm" onClick={() => setShowAddModal(true)}>

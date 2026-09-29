@@ -92,7 +92,7 @@ export default function Home() {
 
             <div className="initiative-body">
               <p className="initiative-lead-text">
-                The <strong>Comrade Choice Awards</strong> is a proposed student awards initiative designed specifically for the students of <strong>Dedan Kimathi University of Technology (DeKUT)</strong>.
+                The <strong>DeKUTSO Comrade Choice Award</strong> is the official student recognition awards initiative hosted by the <strong>DeKUT Students Organization (DeKUTSO)</strong> for the students of <strong>Dedan Kimathi University of Technology</strong>.
               </p>
               <p className="initiative-sub-text">
                 The initiative seeks to create a platform through which DeKUT students can recognize, celebrate, and appreciate fellow students, student leaders, associations, clubs, creators, athletes, entrepreneurs, and other personalities who contribute to campus life.
@@ -119,7 +119,7 @@ export default function Home() {
             <hr className="gold-line initiative-gold-line" />
 
             <p className="purpose-intro-text">
-              The Comrade Choice Awards aims to:
+              The DeKUTSO Comrade Choice Award aims to:
             </p>
 
             <div className="purpose-grid">

@@ -15,7 +15,7 @@ function getPublicKey() {
  * @param {string} params.phone - Customer phone number (auto-normalized e.g. 07XXXXXXXX -> 2547XXXXXXXX)
  * @param {string} [params.description] - Payment description shown to customer
  */
-async function initiatePayment({ amount, phone, description = 'Comrade Choice Awards' }) {
+async function initiatePayment({ amount, phone, description = 'DeKUTSO Comrade Choice Award' }) {
   const secretKey = getSecretKey();
   if (!secretKey) {
     throw new Error('PAYNEXUS_SECRET_KEY is not configured in server environment');

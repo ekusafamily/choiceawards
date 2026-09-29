@@ -49,12 +49,17 @@ export default function HeroSection() {
 
       {/* Content */}
       <div className="container hero-content">
-        <Award size={56} style={{ color: 'var(--color-accent)', marginBottom: '16px' }} />
+        <div className="hero-logo-wrap">
+          <img src="/dekutso-logo.png" alt="DeKUTSO Comrade Choice Award" className="hero-brand-logo" />
+        </div>
+        <div className="hero-dekutso-badge">
+          <span>DeKUT Students Organization (DeKUTSO)</span>
+        </div>
         <h1>
-          Comrade <span className="gold-accent">Choice</span> Awards
+          DeKUTSO <span className="gold-accent">Comrade Choice</span> Award
         </h1>
         <p className="hero-subtitle">
-          An Awards Initiative for Dedan Kimathi University of Technology
+          The Premier Student Recognition Platform at Dedan Kimathi University of Technology
         </p>
         <p className="hero-tagline">
           Your Voice. Your Choice. Your Campus.

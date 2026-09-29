@@ -285,16 +285,29 @@ h4 { font-size: 1.25rem; }
 .navbar-brand {
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
+  gap: 12px;
   color: var(--color-text-inverse);
   font-family: var(--font-heading);
-  font-size: 1.35rem;
+  font-size: 1.25rem;
   font-weight: 700;
   text-decoration: none;
+  letter-spacing: -0.3px;
 }
 
 .navbar-brand:hover {
   color: var(--color-accent);
+}
+
+.navbar-brand-logo {
+  height: 42px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+  transition: transform var(--transition-fast);
+}
+
+.navbar-brand:hover .navbar-brand-logo {
+  transform: scale(1.05);
 }
 
 .navbar-brand svg {
@@ -359,6 +372,24 @@ h4 { font-size: 1.25rem; }
 
 /* Mobile nav */
 @media (max-width: 768px) {
+  .navbar-brand {
+    font-size: 1.05rem;
+    gap: 8px;
+  }
+
+  .navbar-brand-logo {
+    height: 32px;
+  }
+
+  .hero-brand-logo {
+    height: 80px;
+  }
+
+  .hero-dekutso-badge {
+    font-size: 0.75rem;
+    padding: 4px 12px;
+  }
+
   .navbar-toggle {
     display: block;
   }
@@ -378,6 +409,16 @@ h4 { font-size: 1.25rem; }
 
   .navbar-links.open {
     display: flex;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar-brand {
+    font-size: 0.92rem;
+  }
+
+  .navbar-brand-logo {
+    height: 28px;
   }
 }
 
@@ -424,6 +465,42 @@ h4 { font-size: 1.25rem; }
   position: relative;
   z-index: 1;
   width: 100%;
+}
+
+.hero-logo-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--space-sm);
+}
+
+.hero-brand-logo {
+  height: 105px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 18px rgba(0, 0, 0, 0.65));
+  animation: heroLogoFloat 4s ease-in-out infinite alternate;
+}
+
+@keyframes heroLogoFloat {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-5px); }
+}
+
+.hero-dekutso-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 18px;
+  border-radius: 9999px;
+  background: rgba(212, 160, 23, 0.18);
+  border: 1px solid rgba(212, 160, 23, 0.45);
+  backdrop-filter: blur(8px);
+  color: var(--color-accent);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  margin-bottom: var(--space-md);
 }
 
 .hero h1 {
@@ -1420,13 +1497,21 @@ select.form-control {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  background: rgba(212, 160, 23, 0.15);
-  border: 1.5px solid var(--color-accent);
-  color: var(--color-accent);
+  width: 54px;
+  height: 54px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1.5px solid rgba(212, 160, 23, 0.35);
+  padding: 6px;
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.footer-brand-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
 }
 
 .footer-brand-title {

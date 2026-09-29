@@ -15,10 +15,10 @@ export default function Footer() {
           <div className="footer-col footer-col-brand">
             <div className="footer-brand-header">
               <div className="footer-brand-crest">
-                <Award size={28} />
+                <img src="/dekutso-logo.png" alt="DeKUTSO Logo" className="footer-brand-logo" />
               </div>
               <div>
-                <h3 className="footer-brand-title">Comrade Choice Awards</h3>
+                <h3 className="footer-brand-title">DeKUTSO Comrade Choice Award</h3>
                 <span className="footer-brand-sub">Dedan Kimathi University of Technology</span>
               </div>
             </div>
@@ -125,7 +125,7 @@ export default function Footer() {
             &copy; {year} DeKUTSO — Dedan Kimathi University of Technology Students Organization. All Rights Reserved.
           </p>
           <p className="footer-disclaimer">
-            Comrade Choice Awards • Celebrating Student Excellence & Leadership
+            DeKUTSO Comrade Choice Award • Celebrating Student Excellence & Leadership
           </p>
         </div>
       </div>

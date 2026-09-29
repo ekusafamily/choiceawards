@@ -36,7 +36,7 @@ export default function NomineeProfile() {
 
   function handleShare(platform) {
     const url = window.location.href;
-    const text = `Vote for ${nominee.name} in the Comrade Choice Awards 2026!`;
+    const text = `Vote for ${nominee.name} in the DeKUTSO Comrade Choice Award 2026!`;
 
     const urls = {
       whatsapp: `https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`,
