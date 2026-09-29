@@ -1,6 +1,5 @@
 const express = require('express');
 const supabase = require('../config/supabase');
-const mockData = require('../db/mockData');
 
 const router = express.Router();
 
@@ -27,7 +26,12 @@ router.post('/', async (req, res, next) => {
     }
 
     if (!supabase) {
-      const nomination = mockData.recordNomination({
+      return res.status(500).json({ error: { message: 'Database client not initialized' } });
+    }
+
+    const { data, error } = await supabase
+      .from('nominations')
+      .insert({
         nominee_name,
         course,
         year_of_study,
@@ -37,57 +41,12 @@ router.post('/', async (req, res, next) => {
         achievements,
         reason,
         submitted_by,
-      });
-      return res.status(201).json(nomination);
-    }
+      })
+      .select()
+      .single();
 
-    try {
-      const { data, error } = await supabase
-        .from('nominations')
-        .insert({
-          nominee_name,
-          course,
-          year_of_study,
-          category_id,
-          photo_url,
-          short_profile,
-          achievements,
-          reason,
-          submitted_by,
-        })
-        .select()
-        .single();
-
-      if (error) {
-        const nomination = mockData.recordNomination({
-          nominee_name,
-          course,
-          year_of_study,
-          category_id,
-          photo_url,
-          short_profile,
-          achievements,
-          reason,
-          submitted_by,
-        });
-        return res.status(201).json(nomination);
-      }
-
-      res.status(201).json(data);
-    } catch (dbErr) {
-      const nomination = mockData.recordNomination({
-        nominee_name,
-        course,
-        year_of_study,
-        category_id,
-        photo_url,
-        short_profile,
-        achievements,
-        reason,
-        submitted_by,
-      });
-      res.status(201).json(nomination);
-    }
+    if (error) throw error;
+    res.status(201).json(data);
   } catch (err) {
     next(err);
   }
@@ -99,7 +58,7 @@ router.get('/', async (req, res, next) => {
     const { status } = req.query;
 
     if (!supabase) {
-      return res.json(mockData.getNominations(status));
+      return res.status(500).json({ error: { message: 'Database client not initialized' } });
     }
 
     let query = supabase
@@ -112,12 +71,10 @@ router.get('/', async (req, res, next) => {
     }
 
     const { data, error } = await query;
-    if (error || !data || data.length === 0) {
-      return res.json(mockData.getNominations(status));
-    }
-    res.json(data);
+    if (error) throw error;
+    res.json(data || []);
   } catch (err) {
-    res.json(mockData.getNominations(req.query.status));
+    next(err);
   }
 });
 
@@ -127,56 +84,46 @@ router.patch('/:id/approve', async (req, res, next) => {
     const { id } = req.params;
 
     if (!supabase) {
-      const result = mockData.approveNomination(id);
-      if (!result) return res.status(404).json({ error: { message: 'Nomination not found' } });
-      return res.json({ success: true, ...result });
+      return res.status(500).json({ error: { message: 'Database client not initialized' } });
     }
 
-    try {
-      // 1. Fetch nomination
-      const { data: nomination, error: fetchErr } = await supabase
-        .from('nominations')
-        .select('*')
-        .eq('id', id)
-        .single();
+    // 1. Fetch nomination
+    const { data: nomination, error: fetchErr } = await supabase
+      .from('nominations')
+      .select('*')
+      .eq('id', id)
+      .single();
 
-      if (fetchErr || !nomination) {
-        const result = mockData.approveNomination(id);
-        if (result) return res.json({ success: true, ...result });
-        return res.status(404).json({ error: { message: 'Nomination not found' } });
-      }
-
-      // 2. Mark nomination approved
-      await supabase
-        .from('nominations')
-        .update({ status: 'approved' })
-        .eq('id', id);
-
-      // 3. Insert into nominees table
-      const { data: newNominee, error: nomErr } = await supabase
-        .from('nominees')
-        .insert({
-          name: nomination.nominee_name,
-          course: nomination.course,
-          year_of_study: nomination.year_of_study,
-          category_id: nomination.category_id,
-          photo_url: nomination.photo_url,
-          bio: nomination.short_profile || nomination.reason,
-          achievements: nomination.achievements,
-          status: 'approved',
-          total_points: 0,
-        })
-        .select()
-        .single();
-
-      if (nomErr) throw nomErr;
-
-      res.json({ success: true, nomination, nominee: newNominee });
-    } catch (dbErr) {
-      const result = mockData.approveNomination(id);
-      if (result) return res.json({ success: true, ...result });
-      next(dbErr);
+    if (fetchErr || !nomination) {
+      return res.status(404).json({ error: { message: 'Nomination not found' } });
     }
+
+    // 2. Mark nomination approved
+    await supabase
+      .from('nominations')
+      .update({ status: 'approved' })
+      .eq('id', id);
+
+    // 3. Insert into nominees table
+    const { data: newNominee, error: nomErr } = await supabase
+      .from('nominees')
+      .insert({
+        name: nomination.nominee_name,
+        course: nomination.course,
+        year_of_study: nomination.year_of_study,
+        category_id: nomination.category_id,
+        photo_url: nomination.photo_url,
+        bio: nomination.short_profile || nomination.reason,
+        achievements: nomination.achievements,
+        status: 'approved',
+        total_points: 0,
+      })
+      .select()
+      .single();
+
+    if (nomErr) throw nomErr;
+
+    res.json({ success: true, nomination, nominee: newNominee });
   } catch (err) {
     next(err);
   }
@@ -188,31 +135,21 @@ router.patch('/:id/reject', async (req, res, next) => {
     const { id } = req.params;
 
     if (!supabase) {
-      const rejected = mockData.rejectNomination(id);
-      if (!rejected) return res.status(404).json({ error: { message: 'Nomination not found' } });
-      return res.json({ success: true, nomination: rejected });
+      return res.status(500).json({ error: { message: 'Database client not initialized' } });
     }
 
-    try {
-      const { data, error } = await supabase
-        .from('nominations')
-        .update({ status: 'rejected' })
-        .eq('id', id)
-        .select()
-        .single();
+    const { data, error } = await supabase
+      .from('nominations')
+      .update({ status: 'rejected' })
+      .eq('id', id)
+      .select()
+      .single();
 
-      if (error) {
-        const rejected = mockData.rejectNomination(id);
-        if (rejected) return res.json({ success: true, nomination: rejected });
-        return res.status(404).json({ error: { message: 'Nomination not found' } });
-      }
-
-      res.json({ success: true, nomination: data });
-    } catch (dbErr) {
-      const rejected = mockData.rejectNomination(id);
-      if (rejected) return res.json({ success: true, nomination: rejected });
-      next(dbErr);
+    if (error || !data) {
+      return res.status(404).json({ error: { message: 'Nomination not found' } });
     }
+
+    res.json({ success: true, nomination: data });
   } catch (err) {
     next(err);
   }
@@ -224,17 +161,12 @@ router.delete('/:id', async (req, res, next) => {
     const { id } = req.params;
 
     if (!supabase) {
-      const deleted = mockData.deleteNomination(id);
-      return res.json({ success: true, deleted });
+      return res.status(500).json({ error: { message: 'Database client not initialized' } });
     }
 
-    try {
-      await supabase.from('nominations').delete().eq('id', id);
-      res.json({ success: true, id });
-    } catch (e) {
-      mockData.deleteNomination(id);
-      res.json({ success: true, id });
-    }
+    const { error } = await supabase.from('nominations').delete().eq('id', id);
+    if (error) throw error;
+    res.json({ success: true, id });
   } catch (err) {
     next(err);
   }

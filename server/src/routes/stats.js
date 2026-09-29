@@ -1,6 +1,5 @@
 const express = require('express');
 const supabase = require('../config/supabase');
-const mockData = require('../db/mockData');
 
 const router = express.Router();
 
@@ -8,32 +7,24 @@ const router = express.Router();
 router.get('/', async (req, res, next) => {
   try {
     if (!supabase) {
-      return res.json(mockData.getStats());
+      return res.status(500).json({ error: { message: 'Database client not initialized' } });
     }
 
-    try {
-      const [{ count: catCount }, { count: nomCount }, { count: voteCount }, { count: pendingCount }] = await Promise.all([
-        supabase.from('categories').select('*', { count: 'exact', head: true }),
-        supabase.from('nominees').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
-        supabase.from('votes').select('*', { count: 'exact', head: true }),
-        supabase.from('nominations').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-      ]);
+    const [{ count: catCount }, { count: nomCount }, { count: voteCount }, { count: pendingCount }] = await Promise.all([
+      supabase.from('categories').select('*', { count: 'exact', head: true }),
+      supabase.from('nominees').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
+      supabase.from('votes').select('*', { count: 'exact', head: true }),
+      supabase.from('nominations').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+    ]);
 
-      if (catCount === null || catCount === undefined || catCount === 0) {
-        return res.json(mockData.getStats());
-      }
-
-      res.json({
-        categoriesCount: catCount || 0,
-        nomineesCount: nomCount || 0,
-        votesCount: voteCount || 0,
-        pendingNominations: pendingCount || 0,
-      });
-    } catch (e) {
-      res.json(mockData.getStats());
-    }
+    res.json({
+      categoriesCount: catCount || 0,
+      nomineesCount: nomCount || 0,
+      votesCount: voteCount || 0,
+      pendingNominations: pendingCount || 0,
+    });
   } catch (err) {
-    res.json(mockData.getStats());
+    next(err);
   }
 });
 

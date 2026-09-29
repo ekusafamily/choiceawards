@@ -1,6 +1,5 @@
 const express = require('express');
 const supabase = require('../config/supabase');
-const mockData = require('../db/mockData');
 
 const router = express.Router();
 
@@ -8,7 +7,7 @@ const router = express.Router();
 router.get('/', async (req, res, next) => {
   try {
     if (!supabase) {
-      return res.json(mockData.getCategories());
+      return res.status(500).json({ error: { message: 'Database client not initialized' } });
     }
 
     const { data, error } = await supabase
@@ -16,14 +15,12 @@ router.get('/', async (req, res, next) => {
       .select('*')
       .order('display_order', { ascending: true });
 
-    if (error || !data || data.length === 0) {
-      if (error) console.warn('Supabase categories error, using mock data:', error.message);
-      return res.json(mockData.getCategories());
+    if (error) {
+      return res.status(500).json({ error: { message: error.message } });
     }
-    res.json(data);
+    res.json(data || []);
   } catch (err) {
-    console.warn('Categories route exception, falling back to mock data:', err.message);
-    res.json(mockData.getCategories());
+    next(err);
   }
 });
 
@@ -42,11 +39,7 @@ router.get('/:slug', async (req, res, next) => {
     }
 
     if (!supabase) {
-      const category = mockData.getCategoryBySlug(slug);
-      if (!category) {
-        return res.status(404).json({ error: { message: 'Category not found' } });
-      }
-      return res.json(category);
+      return res.status(500).json({ error: { message: 'Database client not initialized' } });
     }
 
     const { data: category, error: catError } = await supabase
@@ -56,8 +49,6 @@ router.get('/:slug', async (req, res, next) => {
       .single();
 
     if (catError || !category) {
-      const mockCategory = mockData.getCategoryBySlug(slug);
-      if (mockCategory) return res.json(mockCategory);
       return res.status(404).json({ error: { message: 'Category not found' } });
     }
 
@@ -69,14 +60,11 @@ router.get('/:slug', async (req, res, next) => {
       .order('total_points', { ascending: false });
 
     if (nomError) {
-      const mockCategory = mockData.getCategoryBySlug(slug);
-      return res.json(mockCategory || { ...category, nominees: [] });
+      return res.json({ ...category, nominees: [] });
     }
 
     res.json({ ...category, nominees: nominees || [] });
   } catch (err) {
-    const mockCategory = mockData.getCategoryBySlug(req.params.slug);
-    if (mockCategory) return res.json(mockCategory);
     next(err);
   }
 });

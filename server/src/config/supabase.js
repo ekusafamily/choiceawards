@@ -10,7 +10,7 @@ if (supabaseUrl && supabaseKey && supabaseUrl.startsWith('http')) {
   console.log('Supabase client initialized');
 } else {
   console.warn(
-    'Warning: SUPABASE_URL or SUPABASE_SERVICE_KEY not configured. Using mock data.'
+    'Warning: SUPABASE_URL or SUPABASE_SERVICE_KEY not configured. Database operations will fail.'
   );
 }
 

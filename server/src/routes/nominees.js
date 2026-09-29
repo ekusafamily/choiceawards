@@ -1,6 +1,5 @@
 const express = require('express');
 const supabase = require('../config/supabase');
-const mockData = require('../db/mockData');
 
 const router = express.Router();
 
@@ -10,7 +9,7 @@ router.get('/', async (req, res, next) => {
     const { category_id } = req.query;
 
     if (!supabase) {
-      return res.json(mockData.getNominees(category_id));
+      return res.status(500).json({ error: { message: 'Database client not initialized' } });
     }
 
     let query = supabase
@@ -24,13 +23,12 @@ router.get('/', async (req, res, next) => {
     }
 
     const { data, error } = await query;
-    if (error || !data || data.length === 0) {
-      return res.json(mockData.getNominees(category_id));
+    if (error) {
+      return res.status(500).json({ error: { message: error.message } });
     }
-    res.json(data);
+    res.json(data || []);
   } catch (err) {
-    console.warn('Nominees route exception, using mock data:', err.message);
-    res.json(mockData.getNominees(req.query.category_id));
+    next(err);
   }
 });
 
@@ -40,11 +38,7 @@ router.get('/:id', async (req, res, next) => {
     const { id } = req.params;
 
     if (!supabase) {
-      const nominee = mockData.getNomineeById(id);
-      if (!nominee) {
-        return res.status(404).json({ error: { message: 'Nominee not found' } });
-      }
-      return res.json(nominee);
+      return res.status(500).json({ error: { message: 'Database client not initialized' } });
     }
 
     const { data, error } = await supabase
@@ -55,15 +49,11 @@ router.get('/:id', async (req, res, next) => {
       .single();
 
     if (error || !data) {
-      const mockNominee = mockData.getNomineeById(id);
-      if (mockNominee) return res.json(mockNominee);
       return res.status(404).json({ error: { message: 'Nominee not found' } });
     }
 
     res.json(data);
   } catch (err) {
-    const mockNominee = mockData.getNomineeById(req.params.id);
-    if (mockNominee) return res.json(mockNominee);
     next(err);
   }
 });
@@ -78,7 +68,12 @@ router.post('/', async (req, res, next) => {
     }
 
     if (!supabase) {
-      const newNom = mockData.addNominee({
+      return res.status(500).json({ error: { message: 'Database client not initialized' } });
+    }
+
+    const { data, error } = await supabase
+      .from('nominees')
+      .insert({
         name,
         category_id,
         course,
@@ -86,41 +81,14 @@ router.post('/', async (req, res, next) => {
         photo_url,
         bio,
         achievements,
-      });
-      return res.status(201).json(newNom);
-    }
+        status: 'approved',
+        total_points: 0,
+      })
+      .select()
+      .single();
 
-    try {
-      const { data, error } = await supabase
-        .from('nominees')
-        .insert({
-          name,
-          category_id,
-          course,
-          year_of_study,
-          photo_url,
-          bio,
-          achievements,
-          status: 'approved',
-          total_points: 0,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      res.status(201).json(data);
-    } catch (e) {
-      const newNom = mockData.addNominee({
-        name,
-        category_id,
-        course,
-        year_of_study,
-        photo_url,
-        bio,
-        achievements,
-      });
-      res.status(201).json(newNom);
-    }
+    if (error) throw error;
+    res.status(201).json(data);
   } catch (err) {
     next(err);
   }
@@ -132,17 +100,12 @@ router.delete('/:id', async (req, res, next) => {
     const { id } = req.params;
 
     if (!supabase) {
-      const deleted = mockData.deleteNominee(id);
-      return res.json({ success: true, deleted });
+      return res.status(500).json({ error: { message: 'Database client not initialized' } });
     }
 
-    try {
-      await supabase.from('nominees').delete().eq('id', id);
-      res.json({ success: true, id });
-    } catch (e) {
-      mockData.deleteNominee(id);
-      res.json({ success: true, id });
-    }
+    const { error } = await supabase.from('nominees').delete().eq('id', id);
+    if (error) throw error;
+    res.json({ success: true, id });
   } catch (err) {
     next(err);
   }

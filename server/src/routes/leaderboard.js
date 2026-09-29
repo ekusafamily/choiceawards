@@ -1,6 +1,5 @@
 const express = require('express');
 const supabase = require('../config/supabase');
-const mockData = require('../db/mockData');
 
 const router = express.Router();
 
@@ -10,11 +9,7 @@ router.get('/:slug', async (req, res, next) => {
     const { slug } = req.params;
 
     if (!supabase) {
-      const mockResult = mockData.getLeaderboard(slug);
-      if (!mockResult) {
-        return res.status(404).json({ error: { message: 'Category not found' } });
-      }
-      return res.json(mockResult);
+      return res.status(500).json({ error: { message: 'Database client not initialized' } });
     }
 
     // Get category by slug
@@ -25,8 +20,6 @@ router.get('/:slug', async (req, res, next) => {
       .single();
 
     if (catError || !category) {
-      const mockResult = mockData.getLeaderboard(slug);
-      if (mockResult) return res.json(mockResult);
       return res.status(404).json({ error: { message: 'Category not found' } });
     }
 
@@ -38,22 +31,18 @@ router.get('/:slug', async (req, res, next) => {
       .eq('status', 'approved')
       .order('total_points', { ascending: false });
 
-    if (nomError || !nominees || nominees.length === 0) {
-      const mockResult = mockData.getLeaderboard(slug);
-      if (mockResult && mockResult.nominees.length > 0) return res.json(mockResult);
+    if (nomError) {
       return res.json({ category, nominees: [] });
     }
 
     // Add position numbers
-    const ranked = nominees.map((nominee, index) => ({
+    const ranked = (nominees || []).map((nominee, index) => ({
       position: index + 1,
       ...nominee,
     }));
 
     res.json({ category, nominees: ranked });
   } catch (err) {
-    const mockResult = mockData.getLeaderboard(req.params.slug);
-    if (mockResult) return res.json(mockResult);
     next(err);
   }
 });

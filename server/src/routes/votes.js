@@ -1,6 +1,5 @@
 const express = require('express');
 const supabase = require('../config/supabase');
-const mockData = require('../db/mockData');
 const paynexus = require('../services/paynexus');
 
 const router = express.Router();
@@ -37,60 +36,48 @@ async function fulfillVote(reference, statusResult) {
   const voterPhone = phone || statusResult?.data?.phone || null;
 
   try {
-    if (supabase) {
-      // 1. Insert vote row into Supabase
-      const { data: vote, error: voteError } = await supabase
-        .from('votes')
-        .insert({
-          nominee_id,
-          category_id,
-          amount,
-          points,
-          transaction_id: transactionId,
-          voter_phone: voterPhone,
-        })
-        .select()
-        .single();
+    if (!supabase) {
+      console.error('Supabase client not initialized, cannot record vote');
+      return { points, transactionId };
+    }
 
-      if (voteError) {
-        console.warn('Supabase vote insert error, recording in mockData:', voteError.message);
-        mockData.recordVote({
-          nominee_id,
-          category_id,
-          amount,
-          transaction_id: transactionId,
-          voter_phone: voterPhone,
-        });
-      }
-
-      // 2. Increment points on nominee
-      const { error: rpcError } = await supabase.rpc('increment_nominee_points', {
-        p_nominee_id: nominee_id,
-        p_points: points,
-      });
-
-      if (rpcError) {
-        const { data: nominee } = await supabase
-          .from('nominees')
-          .select('total_points')
-          .eq('id', nominee_id)
-          .single();
-
-        if (nominee) {
-          await supabase
-            .from('nominees')
-            .update({ total_points: (nominee.total_points || 0) + points })
-            .eq('id', nominee_id);
-        }
-      }
-    } else {
-      mockData.recordVote({
+    // 1. Insert vote row into Supabase
+    const { data: vote, error: voteError } = await supabase
+      .from('votes')
+      .insert({
         nominee_id,
         category_id,
         amount,
+        points,
         transaction_id: transactionId,
         voter_phone: voterPhone,
-      });
+      })
+      .select()
+      .single();
+
+    if (voteError) {
+      console.error('Supabase vote insert error:', voteError.message);
+    }
+
+    // 2. Increment points on nominee
+    const { error: rpcError } = await supabase.rpc('increment_nominee_points', {
+      p_nominee_id: nominee_id,
+      p_points: points,
+    });
+
+    if (rpcError) {
+      const { data: nominee } = await supabase
+        .from('nominees')
+        .select('total_points')
+        .eq('id', nominee_id)
+        .single();
+
+      if (nominee) {
+        await supabase
+          .from('nominees')
+          .update({ total_points: (nominee.total_points || 0) + points })
+          .eq('id', nominee_id);
+      }
     }
 
     FULFILLED_VOTES.add(reference);
@@ -278,74 +265,46 @@ router.post('/', async (req, res, next) => {
     const points = calculatePoints(amount);
 
     if (!supabase) {
-      const vote = mockData.recordVote({
+      return res.status(500).json({ error: { message: 'Database client not initialized' } });
+    }
+
+    const { data: vote, error: voteError } = await supabase
+      .from('votes')
+      .insert({
         nominee_id,
         category_id,
         amount,
-        transaction_id,
-        voter_phone,
-      });
-      return res.status(201).json(vote);
-    }
+        points,
+        transaction_id: transaction_id || null,
+        voter_phone: voter_phone || null,
+      })
+      .select()
+      .single();
 
-    // Try Supabase insert
-    try {
-      const { data: vote, error: voteError } = await supabase
-        .from('votes')
-        .insert({
-          nominee_id,
-          category_id,
-          amount,
-          points,
-          transaction_id: transaction_id || null,
-          voter_phone: voter_phone || null,
-        })
-        .select()
+    if (voteError) throw voteError;
+
+    // Update nominee total points
+    const { error: updateError } = await supabase.rpc('increment_nominee_points', {
+      p_nominee_id: nominee_id,
+      p_points: points,
+    });
+
+    if (updateError) {
+      const { data: nominee } = await supabase
+        .from('nominees')
+        .select('total_points')
+        .eq('id', nominee_id)
         .single();
 
-      if (voteError) {
-        const mockVote = mockData.recordVote({
-          nominee_id,
-          category_id,
-          amount,
-          transaction_id,
-          voter_phone,
-        });
-        return res.status(201).json(mockVote);
-      }
-
-      // Update nominee total points
-      const { error: updateError } = await supabase.rpc('increment_nominee_points', {
-        p_nominee_id: nominee_id,
-        p_points: points,
-      });
-
-      if (updateError) {
-        const { data: nominee } = await supabase
+      if (nominee) {
+        await supabase
           .from('nominees')
-          .select('total_points')
-          .eq('id', nominee_id)
-          .single();
-
-        if (nominee) {
-          await supabase
-            .from('nominees')
-            .update({ total_points: (nominee.total_points || 0) + points })
-            .eq('id', nominee_id);
-        }
+          .update({ total_points: (nominee.total_points || 0) + points })
+          .eq('id', nominee_id);
       }
-
-      return res.status(201).json({ ...vote, points });
-    } catch (dbErr) {
-      const mockVote = mockData.recordVote({
-        nominee_id,
-        category_id,
-        amount,
-        transaction_id,
-        voter_phone,
-      });
-      return res.status(201).json(mockVote);
     }
+
+    return res.status(201).json({ ...vote, points });
   } catch (err) {
     next(err);
   }
