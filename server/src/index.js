@@ -1,4 +1,6 @@
 require('dotenv').config();
+const path = require('path');
+const fs = require('fs');
 const express = require('express');
 const cors = require('cors');
 const errorHandler = require('./middleware/errorHandler');
@@ -16,9 +18,30 @@ const shareRouter = require('./routes/share');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Path to client dist build
+function getClientDistDir() {
+  const candidates = [
+    path.resolve(__dirname, '../../client/dist'),
+    path.resolve(process.cwd(), '../client/dist'),
+    path.resolve(process.cwd(), 'client/dist'),
+    path.resolve(process.cwd(), 'dist'),
+    '/var/www/choiceawards/client/dist',
+    '/home/azureuser23/dekutso/choiceawards/client/dist',
+  ];
+  return candidates.find(d => fs.existsSync(path.join(d, 'index.html'))) || null;
+}
+
+const clientDistDir = getClientDistDir();
+
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Serve static frontend assets if built
+if (clientDistDir) {
+  console.log(`Serving static client files from: ${clientDistDir}`);
+  app.use(express.static(clientDistDir));
+}
 
 // Dynamic Social Media Share Previews (OpenGraph / Twitter card previews with bucket photos)
 app.use('/share', shareRouter);
@@ -45,8 +68,11 @@ function escapeHtml(str) {
     .replace(/>/g, '&gt;');
 }
 
-// Visual status landing page for root route
-app.get('/', (req, res) => {
+// Visual status landing page or React app for root route
+app.get('/', (req, res, next) => {
+  if (clientDistDir && req.query.status !== '1') {
+    return res.sendFile(path.join(clientDistDir, 'index.html'));
+  }
   const clientUrl = process.env.CLIENT_URL || '';
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -220,14 +246,24 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', service: 'choiceawards-api', timestamp: new Date().toISOString() });
 });
 
-// Catch-all: If someone opens a frontend route (/admin, /nominees, etc.) on the backend, redirect to CLIENT_URL
-app.use((req, res, next) => {
-  if (req.method === 'GET' && !req.path.startsWith('/api') && !req.path.startsWith('/share')) {
-    if (process.env.CLIENT_URL) {
-      const target = `${process.env.CLIENT_URL.replace(/\/$/, '')}${req.originalUrl}`;
-      return res.redirect(302, target);
-    }
+// Catch-all: SPA fallback for React Router routes (/admin, /nominees, /categories, etc.)
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api') || req.path.startsWith('/share')) {
+    return next();
   }
+
+  const currentHost = (req.get('x-forwarded-host') || req.get('host') || '').toLowerCase();
+  const isExternalClient = process.env.CLIENT_URL && !process.env.CLIENT_URL.toLowerCase().includes(currentHost);
+
+  if (isExternalClient) {
+    const target = `${process.env.CLIENT_URL.replace(/\/$/, '')}${req.originalUrl}`;
+    return res.redirect(302, target);
+  }
+
+  if (clientDistDir) {
+    return res.sendFile(path.join(clientDistDir, 'index.html'));
+  }
+
   next();
 });
 
