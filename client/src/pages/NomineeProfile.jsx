@@ -13,6 +13,10 @@ export default function NomineeProfile() {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    if (document.documentElement) document.documentElement.scrollTop = 0;
+    if (document.body) document.body.scrollTop = 0;
+
     async function fetch() {
       try {
         const { data } = await apiClient.get(`/nominees/${id}`);

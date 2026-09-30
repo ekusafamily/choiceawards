@@ -9,7 +9,7 @@ const VOTE_OPTIONS = [
   { votes: 10, amount: 10, points: 10, label: '10 Votes' },
   { votes: 20, amount: 20, points: 20, label: '20 Votes' },
   { votes: 50, amount: 50, points: 50, label: '50 Votes' },
-  { votes: 100, amount: 100, points: 110, label: '100 Votes (+10% Bonus)' },
+  // { votes: 100, amount: 100, points: 110, label: '100 Votes (+10% Bonus)' },
 ];
 
 export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
