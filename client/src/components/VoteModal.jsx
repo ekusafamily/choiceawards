@@ -15,72 +15,51 @@ const VOTE_OPTIONS = [
 const COMRADE_TRIVIA = [
   {
     icon: '🏆',
-    title: 'Every Single Vote Counts!',
-    text: 'Top categories in the Comrade Choice Awards 2026 are separated by single-digit points. Your support makes all the difference!',
-  },
-  {
-    icon: '📱',
-    title: 'Keep Your Phone Screen Unlocked',
-    text: 'Safaricom M-Pesa is preparing your STK PIN prompt. It will pop up right on your phone in a few seconds.',
+    title: 'Every Vote Counts!',
+    text: 'Top categories in the Comrade Choice Awards are closely contested. Your vote makes a big impact!',
   },
   {
     icon: '☕',
     title: 'DeKUT Comrade Lore',
-    text: 'Over 2,500 cups of tea and coffee fuel late-night revision sessions and tech hackathons at Dedan Kimathi each week!',
+    text: 'Late-night coffee and revision sessions fuel great ideas and innovation across campus.',
   },
   {
     icon: '🎓',
-    title: 'Silicon Savannah of Mt. Kenya',
-    text: 'DeKUT leads in robotics, engineering, and student innovation across East Africa. Celebrate comrade excellence!',
+    title: 'Silicon Savannah',
+    text: 'DeKUT is renowned for excellence in technology, engineering, and student innovation.',
   },
   {
-    icon: '⚡',
-    title: 'Speedy PIN Entry',
-    text: 'The fastest STK PIN entered this week took just 2.4 seconds! Can you beat the record when your prompt pops up?',
-  },
-  {
-    icon: '🛡️',
-    title: 'Direct Safaricom Verification',
-    text: 'All transactions are verified directly via Safaricom M-Pesa. Votes are credited immediately to the official leaderboard.',
+    icon: '🌟',
+    title: 'Celebrate Excellence',
+    text: 'Recognizing outstanding student leaders and talents shaping the DeKUT community.',
   },
 ];
 
-function getInitiationStage(seconds, nomineeName, phone, currentVotes, currentAmount) {
+function getInitiationStage(seconds, nomineeName) {
   const firstName = nomineeName?.split(' ')[0] || 'Nominee';
-  if (seconds < 4) {
+  if (seconds < 5) {
     return {
-      stepNum: 1,
-      title: 'Connecting to Safaricom Daraja...',
-      sub: 'Establishing 256-bit encrypted M-Pesa handshake',
-      progress: Math.min(25, 10 + seconds * 4),
+      title: 'Connecting...',
+      sub: `Preparing ballot for ${firstName}`,
+      progress: Math.min(30, 10 + seconds * 4),
     };
-  } else if (seconds < 9) {
+  } else if (seconds < 12) {
     return {
-      stepNum: 2,
-      title: `Preparing ballot for ${firstName}...`,
-      sub: `Allocating ${currentVotes} ${currentVotes === 1 ? 'vote' : 'votes'} (KES ${currentAmount})`,
-      progress: Math.min(50, 25 + (seconds - 4) * 5),
-    };
-  } else if (seconds < 14) {
-    return {
-      stepNum: 3,
-      title: 'Authorizing PayNexus M-Pesa Gateway...',
-      sub: 'Negotiating secure STK push merchant token',
-      progress: Math.min(75, 50 + (seconds - 9) * 5),
+      title: `Processing vote for ${firstName}...`,
+      sub: 'Please wait a moment',
+      progress: Math.min(65, 30 + (seconds - 5) * 5),
     };
   } else if (seconds < 18) {
     return {
-      stepNum: 4,
-      title: `Dispatching PIN prompt to ${phone}...`,
-      sub: 'Waking up M-Pesa SIM prompt on your phone',
-      progress: Math.min(92, 75 + (seconds - 14) * 4),
+      title: 'Almost ready...',
+      sub: 'Sending prompt to your phone',
+      progress: Math.min(90, 65 + (seconds - 12) * 4),
     };
   } else {
     return {
-      stepNum: 4,
-      title: 'Almost ready! Unlock your phone now...',
-      sub: 'Safaricom is delivering the PIN dialog to your screen',
-      progress: Math.min(96, 92 + (seconds - 18) * 0.5),
+      title: 'Finalizing...',
+      sub: 'Please check your phone in a moment',
+      progress: Math.min(96, 90 + (seconds - 18) * 0.5),
     };
   }
 }
@@ -166,10 +145,7 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
 
   const currentStage = getInitiationStage(
     elapsedSecs,
-    nominee?.name || 'Nominee',
-    phone,
-    currentVotes,
-    currentAmount
+    nominee?.name || 'Nominee'
   );
   const currentTrivia = COMRADE_TRIVIA[triviaIdx % COMRADE_TRIVIA.length];
 
@@ -505,9 +481,9 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
           </form>
         )}
 
-        {/* STEP 2: Creative & Engaging STK Push Initiating */}
+        {/* STEP 2: Plain & Engaging Waiting View */}
         {step === 'initiating' && (
-          <div className="stk-engaging-view">
+          <div className="stk-engaging-view" style={{ padding: '24px 20px 20px' }}>
             {/* Floating cheer particles */}
             <div className="stk-floating-area">
               {cheerParticles.map((particle) => (
@@ -521,59 +497,26 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
               ))}
             </div>
 
-            {/* Live Status Header */}
-            <div className="stk-init-status-box">
-              <div className="stk-live-badge">
-                <span className="stk-pulse-dot" />
-                Live Safaricom Gateway Link
-              </div>
-              <h3 className="stk-stage-title">
+            {/* Plain Status Header */}
+            <div style={{ marginBottom: '16px' }}>
+              <Loader2 size={36} className="spin-icon" style={{ color: 'var(--color-accent)', margin: '0 auto 12px' }} />
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '4px', color: 'var(--color-secondary)' }}>
                 {currentStage.title}
               </h3>
-              <p className="stk-stage-sub">
+              <p style={{ color: 'var(--color-text-muted)', fontSize: '0.88rem', margin: 0 }}>
                 {currentStage.sub}
               </p>
 
-              <div className="stk-progress-container">
+              <div className="stk-progress-container" style={{ maxWidth: '280px', margin: '14px auto 0' }}>
                 <div
                   className="stk-progress-bar"
                   style={{ width: `${currentStage.progress}%` }}
                 />
               </div>
-              <div className="stk-progress-meta">
-                <span>Stage {currentStage.stepNum} of 4</span>
-                <span>~{Math.round(currentStage.progress)}%</span>
-              </div>
-            </div>
-
-            {/* Simulated Phone Prompt Mockup */}
-            <div className="stk-phone-mockup">
-              <div className="stk-phone-header">
-                <span className="stk-phone-title">
-                  <Smartphone size={13} /> M-Pesa STK Prompt
-                </span>
-                <span className="stk-phone-time">Incoming...</span>
-              </div>
-              <p className="stk-phone-body">
-                Do you want to pay <strong>KES {currentAmount}</strong> to{' '}
-                <strong>Comrade Choice Awards</strong> for{' '}
-                <strong>{nomineeFirstName}</strong>?
-              </p>
-              <div className="stk-phone-prompt-box">
-                <span className="stk-phone-prompt-text">
-                  Enter M-Pesa PIN:
-                </span>
-                <div className="stk-pin-dots">
-                  <span className="stk-pin-dot" />
-                  <span className="stk-pin-dot" />
-                  <span className="stk-pin-dot" />
-                  <span className="stk-pin-dot" />
-                </div>
-              </div>
             </div>
 
             {/* Interactive Hype Button */}
-            <div className="stk-hype-section">
+            <div className="stk-hype-section" style={{ margin: '20px 0 16px' }}>
               <button
                 type="button"
                 className="stk-hype-btn"
@@ -588,8 +531,8 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
               </p>
             </div>
 
-            {/* Comrade Trivia & Tips Carousel */}
-            <div className="stk-trivia-card">
+            {/* Comrade Trivia Carousel */}
+            <div className="stk-trivia-card" style={{ maxWidth: '340px', margin: '0 auto' }}>
               <span className="stk-trivia-icon">{currentTrivia.icon}</span>
               <div className="stk-trivia-content">
                 <strong>{currentTrivia.title}</strong>
@@ -597,14 +540,14 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
               </div>
             </div>
 
-            {/* Footer reassurance & cancel */}
-            <div style={{ marginTop: '8px' }}>
+            {/* Plain Cancel link */}
+            <div style={{ marginTop: '16px' }}>
               <button
                 type="button"
                 className="stk-cancel-link"
                 onClick={handleCancelInitiation}
               >
-                Wrong phone number? Cancel & edit
+                Cancel
               </button>
             </div>
           </div>
