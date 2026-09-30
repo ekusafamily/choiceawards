@@ -87,9 +87,7 @@ export default function NomineeProfile() {
     const apiBase = import.meta.env.VITE_API_URL || '';
     const serverBase = apiBase.startsWith('http')
       ? apiBase.replace(/\/api\/?$/, '')
-      : (typeof window !== 'undefined' && !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1')
-          ? 'https://demo.balktraders.site'
-          : window.location.origin);
+      : window.location.origin;
     const shareUrl = `${serverBase}/share/nominee/${nominee.id}`;
     const text = `Vote for ${nominee.name} in the DeKUTSO Comrade Choice Award 2026!`;
 

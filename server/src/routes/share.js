@@ -173,15 +173,24 @@ async function renderNomineeSharePage(req, res) {
 
     // Human visitor handling:
     if (!isBot && req.query.preview !== '1') {
-      // 1. If external client domain configured (e.g. Render frontend), redirect there
+      // 1. If external client domain configured, redirect there
       if (isExternalClient) {
         return res.redirect(302, `${process.env.CLIENT_URL.replace(/\/$/, '')}/nominees/${id}`);
       }
 
-      // 2. Otherwise, fall through and render the rich standalone nominee card HTML with live voting below!
+      // 2. If client/dist/index.html exists locally, serve the full React app!
+      const clientIndex = getClientDistIndex();
+      if (clientIndex) {
+        return res.sendFile(clientIndex);
+      }
+
+      // 3. Fallback: If neither, DO NOT redirect to targetUrl (which would cause an infinite 302 loop!).
+      // Instead, fall through and render the rich standalone nominee card HTML below!
     }
 
     if (!supabase) {
+      const clientIndex = getClientDistIndex();
+      if (clientIndex) return res.sendFile(clientIndex);
       return res.status(500).send('Database connection unavailable');
     }
 
@@ -194,9 +203,8 @@ async function renderNomineeSharePage(req, res) {
 
     if (error || !nominee) {
       console.warn(`Nominee share lookup not found for ID: ${id}`);
-      if (isExternalClient) {
-        return res.redirect(302, `${process.env.CLIENT_URL.replace(/\/$/, '')}/categories`);
-      }
+      const clientIndex = getClientDistIndex();
+      if (clientIndex) return res.sendFile(clientIndex);
       return res.status(404).send('Nominee not found');
     }
 
