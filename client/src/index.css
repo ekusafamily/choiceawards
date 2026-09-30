@@ -4404,3 +4404,322 @@ textarea.form-control {
   color: var(--color-error);
 }
 
+/* =============================================
+   Creative STK Push Initiating & Engagement Screen
+   ============================================= */
+
+.stk-engaging-view {
+  padding: 16px 18px 20px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+@media (max-width: 640px) {
+  .stk-engaging-view {
+    padding: 12px 14px 16px;
+  }
+}
+
+/* Floating cheer particles container */
+.stk-floating-area {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 25;
+  overflow: hidden;
+}
+
+.stk-floating-emoji {
+  position: absolute;
+  bottom: 90px;
+  font-size: 26px;
+  user-select: none;
+  animation: stkFloatUp 1.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes stkFloatUp {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(0.7) rotate(0deg);
+  }
+  50% {
+    opacity: 0.95;
+    transform: translateY(-80px) scale(1.3) rotate(15deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-160px) scale(1.6) rotate(-15deg);
+  }
+}
+
+/* Initiating live status header */
+.stk-init-status-box {
+  background: rgba(212, 160, 23, 0.08);
+  border: 1px solid rgba(212, 160, 23, 0.3);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+
+.stk-live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--color-primary);
+  background: rgba(27, 94, 32, 0.1);
+  padding: 3px 10px;
+  border-radius: 20px;
+  margin-bottom: 8px;
+}
+
+.stk-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+  animation: stkPulseDot 1.5s infinite;
+}
+
+@keyframes stkPulseDot {
+  0% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(34, 197, 94, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+  }
+}
+
+.stk-stage-title {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--color-secondary);
+  margin-bottom: 3px;
+  min-height: 22px;
+}
+
+.stk-stage-sub {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+/* Progress bar container */
+.stk-progress-container {
+  margin: 10px 0 4px;
+  background: var(--color-bg-alt);
+  border: 1px solid var(--color-border-light);
+  border-radius: 20px;
+  height: 7px;
+  overflow: hidden;
+  position: relative;
+}
+
+.stk-progress-bar {
+  height: 100%;
+  border-radius: 20px;
+  background: linear-gradient(90deg, #1B5E20, #D4A017, #22c55e);
+  background-size: 200% 100%;
+  animation: stkShimmerProgress 2s linear infinite;
+  transition: width 0.5s ease-out;
+}
+
+@keyframes stkShimmerProgress {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+.stk-progress-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.72rem;
+  color: var(--color-text-light);
+  margin-top: 4px;
+}
+
+/* Simulated Phone M-Pesa Prompt Mockup */
+.stk-phone-mockup {
+  background: #111827;
+  border: 2px solid #374151;
+  border-radius: 14px;
+  padding: 10px 14px;
+  margin: 12px auto;
+  max-width: 320px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  position: relative;
+  text-align: left;
+}
+
+.stk-phone-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 5px;
+}
+
+.stk-phone-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #22c55e;
+  text-transform: uppercase;
+}
+
+.stk-phone-time {
+  font-size: 0.68rem;
+  color: #9CA3AF;
+  font-family: var(--font-mono);
+}
+
+.stk-phone-body {
+  font-size: 0.8rem;
+  color: #F3F4F6;
+  line-height: 1.35;
+}
+
+.stk-phone-prompt-box {
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px dashed rgba(34, 197, 94, 0.6);
+  border-radius: 8px;
+  padding: 6px 10px;
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.stk-phone-prompt-text {
+  font-size: 0.75rem;
+  color: #86EFAC;
+  font-weight: 600;
+}
+
+.stk-pin-dots {
+  display: flex;
+  gap: 5px;
+}
+
+.stk-pin-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  animation: stkPulseDotPin 1.2s infinite alternate;
+}
+.stk-pin-dot:nth-child(2) { animation-delay: 0.25s; }
+.stk-pin-dot:nth-child(3) { animation-delay: 0.5s; }
+.stk-pin-dot:nth-child(4) { animation-delay: 0.75s; }
+
+@keyframes stkPulseDotPin {
+  0% { opacity: 0.3; transform: scale(0.8); }
+  100% { opacity: 1; transform: scale(1.2); }
+}
+
+/* Hype / Cheer interactive button area */
+.stk-hype-section {
+  margin: 12px 0 10px;
+}
+
+.stk-hype-btn {
+  background: linear-gradient(135deg, rgba(212, 160, 23, 0.16), rgba(27, 94, 32, 0.1));
+  border: 1.5px solid var(--color-accent);
+  color: var(--color-secondary);
+  font-size: 0.88rem;
+  font-weight: 700;
+  padding: 9px 18px;
+  border-radius: 30px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.15s ease;
+  user-select: none;
+  touch-action: manipulation;
+  box-shadow: 0 3px 10px rgba(212, 160, 23, 0.15);
+}
+
+.stk-hype-btn:hover {
+  background: linear-gradient(135deg, rgba(212, 160, 23, 0.26), rgba(27, 94, 32, 0.18));
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 5px 14px rgba(212, 160, 23, 0.22);
+}
+
+.stk-hype-btn:active {
+  transform: translateY(1px) scale(0.96);
+  background: rgba(212, 160, 23, 0.32);
+}
+
+.stk-hype-status {
+  font-size: 0.76rem;
+  color: var(--color-primary);
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+/* Comrade Trivia Card */
+.stk-trivia-card {
+  background: #FAF9F6;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  margin: 12px 0 8px;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  text-align: left;
+  transition: opacity 0.3s ease;
+}
+
+.stk-trivia-icon {
+  font-size: 1.15rem;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.stk-trivia-content strong {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--color-secondary);
+  margin-bottom: 2px;
+}
+
+.stk-trivia-content span {
+  line-height: 1.35;
+  display: block;
+}
+
+/* Reassurance & Cancel link */
+.stk-cancel-link {
+  background: none;
+  border: none;
+  color: var(--color-text-light);
+  font-size: 0.78rem;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 4px;
+  transition: color var(--transition-fast);
+}
+
+.stk-cancel-link:hover {
+  color: var(--color-error);
+}
+

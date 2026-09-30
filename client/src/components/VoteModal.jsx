@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import {
   X, Trophy, User, CheckCircle2, Smartphone, Loader2,
-  AlertCircle, RefreshCw, ShieldCheck, Sparkles
+  AlertCircle, RefreshCw, ShieldCheck, Sparkles, Flame
 } from 'lucide-react';
 import apiClient from '../api/client';
 
@@ -11,6 +11,87 @@ const VOTE_OPTIONS = [
   { votes: 50, amount: 50, points: 50, label: '50 Votes' },
   // { votes: 100, amount: 100, points: 110, label: '100 Votes (+10% Bonus)' },
 ];
+
+const COMRADE_TRIVIA = [
+  {
+    icon: '🏆',
+    title: 'Every Single Vote Counts!',
+    text: 'Top categories in the Comrade Choice Awards 2026 are separated by single-digit points. Your support makes all the difference!',
+  },
+  {
+    icon: '📱',
+    title: 'Keep Your Phone Screen Unlocked',
+    text: 'Safaricom M-Pesa is preparing your STK PIN prompt. It will pop up right on your phone in a few seconds.',
+  },
+  {
+    icon: '☕',
+    title: 'DeKUT Comrade Lore',
+    text: 'Over 2,500 cups of tea and coffee fuel late-night revision sessions and tech hackathons at Dedan Kimathi each week!',
+  },
+  {
+    icon: '🎓',
+    title: 'Silicon Savannah of Mt. Kenya',
+    text: 'DeKUT leads in robotics, engineering, and student innovation across East Africa. Celebrate comrade excellence!',
+  },
+  {
+    icon: '⚡',
+    title: 'Speedy PIN Entry',
+    text: 'The fastest STK PIN entered this week took just 2.4 seconds! Can you beat the record when your prompt pops up?',
+  },
+  {
+    icon: '🛡️',
+    title: 'Direct Safaricom Verification',
+    text: 'All transactions are verified directly via Safaricom M-Pesa. Votes are credited immediately to the official leaderboard.',
+  },
+];
+
+function getInitiationStage(seconds, nomineeName, phone, currentVotes, currentAmount) {
+  const firstName = nomineeName?.split(' ')[0] || 'Nominee';
+  if (seconds < 4) {
+    return {
+      stepNum: 1,
+      title: 'Connecting to Safaricom Daraja...',
+      sub: 'Establishing 256-bit encrypted M-Pesa handshake',
+      progress: Math.min(25, 10 + seconds * 4),
+    };
+  } else if (seconds < 9) {
+    return {
+      stepNum: 2,
+      title: `Preparing ballot for ${firstName}...`,
+      sub: `Allocating ${currentVotes} ${currentVotes === 1 ? 'vote' : 'votes'} (KES ${currentAmount})`,
+      progress: Math.min(50, 25 + (seconds - 4) * 5),
+    };
+  } else if (seconds < 14) {
+    return {
+      stepNum: 3,
+      title: 'Authorizing PayNexus M-Pesa Gateway...',
+      sub: 'Negotiating secure STK push merchant token',
+      progress: Math.min(75, 50 + (seconds - 9) * 5),
+    };
+  } else if (seconds < 18) {
+    return {
+      stepNum: 4,
+      title: `Dispatching PIN prompt to ${phone}...`,
+      sub: 'Waking up M-Pesa SIM prompt on your phone',
+      progress: Math.min(92, 75 + (seconds - 14) * 4),
+    };
+  } else {
+    return {
+      stepNum: 4,
+      title: 'Almost ready! Unlock your phone now...',
+      sub: 'Safaricom is delivering the PIN dialog to your screen',
+      progress: Math.min(96, 92 + (seconds - 18) * 0.5),
+    };
+  }
+}
+
+function getCheerMessage(count, nomineeFirstName) {
+  if (count === 0) return `Tap to send hype to ${nomineeFirstName} while connecting!`;
+  if (count < 5) return `⚡ ${count} ${count === 1 ? 'cheer' : 'cheers'} sent! Keep tapping!`;
+  if (count < 12) return `🔥 ${count} cheers! The hype is real!`;
+  if (count < 25) return `🏆 ${count} cheers! Super Comrade Fan energy!`;
+  return `🌟 ${count} cheers! Legendary Comrade Backer!`;
+}
 
 export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
   // Selection state
@@ -26,9 +107,16 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
   const [pollAttempt, setPollAttempt] = useState(0);
   const [completedData, setCompletedData] = useState(null);
 
+  // Creative STK engagement state
+  const [elapsedSecs, setElapsedSecs] = useState(0);
+  const [cheerCount, setCheerCount] = useState(0);
+  const [cheerParticles, setCheerParticles] = useState([]);
+  const [triviaIdx, setTriviaIdx] = useState(0);
+
   const pollTimerRef = useRef(null);
   const isMountedRef = useRef(true);
   const isPollingRef = useRef(false);
+  const abortControllerRef = useRef(null);
 
   function stopPolling() {
     isPollingRef.current = false;
@@ -43,14 +131,47 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
     return () => {
       isMountedRef.current = false;
       stopPolling();
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
     };
   }, []);
+
+  // Timer & trivia cycle for creative STK push initiating state
+  useEffect(() => {
+    if (step !== 'initiating') {
+      setElapsedSecs(0);
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setElapsedSecs((prev) => {
+        const next = prev + 1;
+        if (next % 4 === 0) {
+          setTriviaIdx((idx) => (idx + 1) % COMRADE_TRIVIA.length);
+        }
+        return next;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [step]);
 
   // Compute final votes and amount (1 vote = 1 KES, minimum 10 KES)
   const currentVotes = isCustom
     ? Math.max(10, parseInt(customVotes, 10) || 10)
     : selectedVotes;
   const currentAmount = currentVotes; // 1 bob per vote
+  const nomineeFirstName = nominee?.name?.split(' ')[0] || 'Nominee';
+
+  const currentStage = getInitiationStage(
+    elapsedSecs,
+    nominee?.name || 'Nominee',
+    phone,
+    currentVotes,
+    currentAmount
+  );
+  const currentTrivia = COMRADE_TRIVIA[triviaIdx % COMRADE_TRIVIA.length];
 
   function handleSelectOption(optVotes) {
     setIsCustom(false);
@@ -71,6 +192,20 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
     }
   }
 
+  // Interactive cheer reactions
+  function handleCheer() {
+    setCheerCount((c) => c + 1);
+    const emojis = ['🔥', '🏆', '💚', '⚡', '🎉', '🌟', '👏', '🎯'];
+    const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+    const id = Date.now() + Math.random();
+    const x = Math.floor(25 + Math.random() * 50); // 25% to 75%
+    setCheerParticles((prev) => [...prev.slice(-10), { id, emoji, x }]);
+
+    setTimeout(() => {
+      setCheerParticles((prev) => prev.filter((p) => p.id !== id));
+    }, 1300);
+  }
+
   // Validate Kenyan phone format
   function validatePhone(p) {
     if (!p) return 'Please enter your M-Pesa phone number.';
@@ -79,6 +214,16 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
       return 'Enter a valid Kenyan Safaricom phone number (e.g. 0712345678 or 0112345678).';
     }
     return null;
+  }
+
+  // Cancel in-flight STK initiation
+  function handleCancelInitiation() {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setStep('select');
+    setError('');
   }
 
   // Step 1: Initiate STK Push
@@ -105,17 +250,27 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
     // Save phone for future convenience
     localStorage.setItem('cca_voter_phone', phone.trim());
 
+    setElapsedSecs(0);
     setStep('initiating');
 
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     try {
-      const res = await apiClient.post('/votes/initiate', {
-        nominee_id: nominee.id,
-        category_id: nominee.category_id,
-        amount: currentAmount,
-        phone: phone.trim(),
-        votes_count: currentVotes,
-        nominee_name: nominee.name,
-      });
+      const res = await apiClient.post(
+        '/votes/initiate',
+        {
+          nominee_id: nominee.id,
+          category_id: nominee.category_id,
+          amount: currentAmount,
+          phone: phone.trim(),
+          votes_count: currentVotes,
+          nominee_name: nominee.name,
+        },
+        {
+          signal: controller.signal,
+        }
+      );
 
       if (res.data?.success && res.data.reference) {
         setActiveReference(res.data.reference);
@@ -125,8 +280,15 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
         throw new Error(res.data?.error?.message || 'Failed to dispatch M-Pesa push.');
       }
     } catch (err) {
+      if (err.name === 'CanceledError' || err.name === 'AbortError' || err.code === 'ERR_CANCELED') {
+        return;
+      }
       console.error('STK push error:', err);
-      setError(err.response?.data?.error?.message || err.message || 'Failed to start payment. Please check your network and phone number.');
+      setError(
+        err.response?.data?.error?.message ||
+          err.message ||
+          'Failed to start payment. Please check your network and phone number.'
+      );
       setStep('select');
     }
   }
@@ -201,10 +363,18 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
     setStep('select');
   }
 
+  function handleCloseModal() {
+    if (step === 'initiating') {
+      handleCancelInitiation();
+    }
+    stopPolling();
+    onClose();
+  }
+
   return (
     <div
       className="modal-overlay"
-      onClick={step === 'waiting' ? undefined : onClose}
+      onClick={step === 'waiting' ? undefined : handleCloseModal}
       role="dialog"
       aria-modal="true"
       aria-label="Vote modal"
@@ -217,7 +387,7 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
             <span>Cast Your Vote</span>
           </div>
           {step !== 'waiting' && (
-            <button className="modal-close" onClick={onClose} aria-label="Close">
+            <button className="modal-close" onClick={handleCloseModal} aria-label="Close">
               <X size={20} />
             </button>
           )}
@@ -335,30 +505,124 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
           </form>
         )}
 
-        {/* STEP 2: Initiating */}
+        {/* STEP 2: Creative & Engaging STK Push Initiating */}
         {step === 'initiating' && (
-          <div className="modal-body" style={{ textAlign: 'center', padding: '40px 20px' }}>
-            <Loader2 size={44} className="spin-icon" style={{ color: 'var(--color-accent)', margin: '0 auto 16px' }} />
-            <h3 style={{ fontSize: '1.2rem', marginBottom: '8px' }}>Connecting to M-Pesa...</h3>
-            <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
-              Sending payment request of <strong>KES {currentAmount}</strong> to <strong>{phone}</strong>.
-            </p>
+          <div className="stk-engaging-view">
+            {/* Floating cheer particles */}
+            <div className="stk-floating-area">
+              {cheerParticles.map((particle) => (
+                <span
+                  key={particle.id}
+                  className="stk-floating-emoji"
+                  style={{ left: `${particle.x}%` }}
+                >
+                  {particle.emoji}
+                </span>
+              ))}
+            </div>
+
+            {/* Live Status Header */}
+            <div className="stk-init-status-box">
+              <div className="stk-live-badge">
+                <span className="stk-pulse-dot" />
+                Live Safaricom Gateway Link
+              </div>
+              <h3 className="stk-stage-title">
+                {currentStage.title}
+              </h3>
+              <p className="stk-stage-sub">
+                {currentStage.sub}
+              </p>
+
+              <div className="stk-progress-container">
+                <div
+                  className="stk-progress-bar"
+                  style={{ width: `${currentStage.progress}%` }}
+                />
+              </div>
+              <div className="stk-progress-meta">
+                <span>Stage {currentStage.stepNum} of 4</span>
+                <span>~{Math.round(currentStage.progress)}%</span>
+              </div>
+            </div>
+
+            {/* Simulated Phone Prompt Mockup */}
+            <div className="stk-phone-mockup">
+              <div className="stk-phone-header">
+                <span className="stk-phone-title">
+                  <Smartphone size={13} /> M-Pesa STK Prompt
+                </span>
+                <span className="stk-phone-time">Incoming...</span>
+              </div>
+              <p className="stk-phone-body">
+                Do you want to pay <strong>KES {currentAmount}</strong> to{' '}
+                <strong>Comrade Choice Awards</strong> for{' '}
+                <strong>{nomineeFirstName}</strong>?
+              </p>
+              <div className="stk-phone-prompt-box">
+                <span className="stk-phone-prompt-text">
+                  Enter M-Pesa PIN:
+                </span>
+                <div className="stk-pin-dots">
+                  <span className="stk-pin-dot" />
+                  <span className="stk-pin-dot" />
+                  <span className="stk-pin-dot" />
+                  <span className="stk-pin-dot" />
+                </div>
+              </div>
+            </div>
+
+            {/* Interactive Hype Button */}
+            <div className="stk-hype-section">
+              <button
+                type="button"
+                className="stk-hype-btn"
+                onClick={handleCheer}
+                id="cheer-hype-btn"
+              >
+                <Flame size={18} style={{ color: '#f59e0b' }} />
+                Tap to Hype {nomineeFirstName}!
+              </button>
+              <p className="stk-hype-status">
+                {getCheerMessage(cheerCount, nomineeFirstName)}
+              </p>
+            </div>
+
+            {/* Comrade Trivia & Tips Carousel */}
+            <div className="stk-trivia-card">
+              <span className="stk-trivia-icon">{currentTrivia.icon}</span>
+              <div className="stk-trivia-content">
+                <strong>{currentTrivia.title}</strong>
+                <span>{currentTrivia.text}</span>
+              </div>
+            </div>
+
+            {/* Footer reassurance & cancel */}
+            <div style={{ marginTop: '8px' }}>
+              <button
+                type="button"
+                className="stk-cancel-link"
+                onClick={handleCancelInitiation}
+              >
+                Wrong phone number? Cancel & edit
+              </button>
+            </div>
           </div>
         )}
 
         {/* STEP 3: Waiting for PIN on Phone */}
         {step === 'waiting' && (
-          <div className="modal-body" style={{ textAlign: 'center', padding: '36px 20px' }}>
+          <div className="modal-body" style={{ textAlign: 'center', padding: '32px 20px 24px' }}>
             <div style={{
-              width: '68px',
-              height: '68px',
+              width: '64px',
+              height: '64px',
               borderRadius: '50%',
               background: 'rgba(34, 197, 94, 0.12)',
               border: '2px solid #22c55e',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              margin: '0 auto 18px',
+              margin: '0 auto 16px',
               color: '#22c55e'
             }}>
               <Smartphone size={32} />
@@ -367,10 +631,25 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
             <h3 style={{ fontSize: '1.25rem', marginBottom: '8px', color: 'var(--color-text)' }}>
               Check Your Phone!
             </h3>
-            <p style={{ color: 'var(--color-text-muted)', fontSize: '0.92rem', lineHeight: 1.5, marginBottom: '20px' }}>
+            <p style={{ color: 'var(--color-text-muted)', fontSize: '0.92rem', lineHeight: 1.5, marginBottom: '14px' }}>
               An M-Pesa prompt has been sent to <strong style={{ color: 'var(--color-text)' }}>{phone}</strong>.<br />
               Enter your M-Pesa PIN to complete payment of <strong style={{ color: '#22c55e' }}>KES {currentAmount}</strong>.
             </p>
+
+            {cheerCount > 0 && (
+              <div style={{
+                fontSize: '0.82rem',
+                color: 'var(--color-primary)',
+                fontWeight: 600,
+                marginBottom: '14px',
+                background: 'rgba(27, 94, 32, 0.08)',
+                padding: '6px 14px',
+                borderRadius: '20px',
+                display: 'inline-block'
+              }}>
+                🔥 You sent {cheerCount} {cheerCount === 1 ? 'cheer' : 'cheers'} to {nomineeFirstName}!
+              </div>
+            )}
 
             <div style={{
               display: 'inline-flex',
@@ -381,7 +660,7 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
               background: 'rgba(255, 255, 255, 0.05)',
               fontSize: '0.82rem',
               color: 'var(--color-text-muted)',
-              marginBottom: '24px'
+              marginBottom: '20px'
             }}>
               <Loader2 size={15} className="spin-icon" />
               Waiting for PIN confirmation ({pollAttempt}/25)...
