@@ -1233,12 +1233,15 @@ h4 { font-size: 1.25rem; }
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.65);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 2000;
-  padding: var(--space-lg);
+  padding: var(--space-md);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 .modal {
@@ -1247,7 +1250,10 @@ h4 { font-size: 1.25rem; }
   max-width: 480px;
   width: 100%;
   max-height: 90vh;
+  max-height: 90dvh;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   box-shadow: var(--shadow-lg);
 }
 
@@ -1349,20 +1355,30 @@ select.form-control {
 
 .voter-card-modal {
   max-width: 440px;
+  width: 100%;
+  max-height: calc(100dvh - 28px);
+  max-height: calc(100vh - 28px);
   border-radius: var(--radius-lg);
-  overflow: hidden;
   background: #FFFFFF;
   border: 1.5px solid var(--color-border);
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.22);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.25);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  margin: auto 0;
 }
 
 .voter-modal-header {
-  padding: 16px 20px;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  padding: 14px 18px;
   border-bottom: 2px solid var(--color-accent);
   display: flex;
   align-items: center;
   justify-content: space-between;
   background: #FAF9F6;
+  flex-shrink: 0;
 }
 
 .voter-header-title {
@@ -1515,9 +1531,13 @@ select.form-control {
 }
 
 .voter-modal-footer {
-  padding: 16px 20px 20px;
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+  padding: 14px 18px 18px;
   background: #FAF9F6;
   border-top: 1px solid var(--color-border-light);
+  box-shadow: 0 -4px 14px rgba(0, 0, 0, 0.04);
 }
 
 .voter-confirm-btn {
@@ -1536,6 +1556,54 @@ select.form-control {
   color: var(--color-text-muted);
   margin-top: 10px;
   margin-bottom: 0;
+}
+
+@media (max-width: 640px) {
+  .modal-overlay {
+    padding: 10px 8px;
+  }
+
+  .voter-card-modal {
+    max-height: calc(100dvh - 16px);
+    max-height: calc(100vh - 16px);
+    border-radius: var(--radius-md);
+  }
+
+  .voter-card-body {
+    padding: 14px 14px 10px;
+  }
+
+  .voter-nominee-preview {
+    padding: 10px 12px;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .voter-avatar-wrap {
+    width: 44px;
+    height: 44px;
+  }
+
+  .voter-nominee-name {
+    font-size: 1.1rem;
+  }
+
+  .voter-options-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .voter-pill-btn {
+    padding: 10px 6px;
+  }
+
+  .voter-pill-label {
+    font-size: 1rem;
+  }
+
+  .voter-modal-footer {
+    padding: 12px 14px 14px;
+  }
 }
 
 /* =============================================
