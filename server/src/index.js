@@ -247,7 +247,11 @@ app.get('/api/health', (req, res) => {
 });
 
 // Catch-all: SPA fallback for React Router routes (/admin, /nominees, /categories, etc.)
-app.get('*', (req, res, next) => {
+app.use((req, res, next) => {
+  if (req.method !== 'GET') {
+    return next();
+  }
+
   if (req.path.startsWith('/api') || req.path.startsWith('/share')) {
     return next();
   }
