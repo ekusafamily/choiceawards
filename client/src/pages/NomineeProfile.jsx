@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, BookOpen, Trophy, User, Copy, Check } from 'lucide-react';
+import { ArrowLeft, BookOpen, Trophy, User, Copy, Check, Clock } from 'lucide-react';
 import apiClient from '../api/client';
 import VoteModal from '../components/VoteModal';
 
@@ -214,7 +214,8 @@ export default function NomineeProfile() {
               )}
             </div>
 
-            <div className="profile-points-box">
+            {/* Points tally - hidden until voting commences */}
+            {/* <div className="profile-points-box">
               <Trophy size={24} />
               <div>
                 <span className="points-num">
@@ -222,16 +223,22 @@ export default function NomineeProfile() {
                 </span>
                 <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>points</span>
               </div>
-            </div>
+            </div> */}
 
-            <div style={{ display: 'flex', gap: 'var(--space-sm)', flexWrap: 'wrap' }}>
-              <button
+            <div style={{ display: 'flex', gap: 'var(--space-sm)', flexWrap: 'wrap', alignItems: 'center' }}>
+              {/* Vote button - commented out for nomination period */}
+              {/* <button
                 className="btn btn-gold"
                 onClick={() => setShowVoteModal(true)}
                 id="profile-vote-btn"
               >
                 Vote for {nominee.name.split(' ')[0]}
-              </button>
+              </button> */}
+
+              <div className="voting-commencing-banner" id="profile-voting-soon">
+                <Clock size={16} />
+                <span>Voting Commencing Soon</span>
+              </div>
 
               <div className="profile-share" style={{ marginTop: 0 }}>
                 <button

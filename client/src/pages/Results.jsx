@@ -49,10 +49,10 @@ export default function Results() {
     <div className="page">
       <div className="container">
         <div className="section-title">
-          <h2>Voting Results</h2>
+          <h2>Voting Results & Standings</h2>
           <hr className="gold-line" />
           <p>
-            Live standings for all award categories. Results are updated in real-time.
+            Nominations are currently ongoing. Official points and live standings will be revealed once voting commences.
           </p>
         </div>
 

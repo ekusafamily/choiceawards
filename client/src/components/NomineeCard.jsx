@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { User, Trophy } from 'lucide-react';
+import { User, Trophy, Clock } from 'lucide-react';
 
 export default function NomineeCard({ nominee, onVote }) {
   return (
@@ -29,19 +29,21 @@ export default function NomineeCard({ nominee, onVote }) {
               ? ` • ${nominee.year_of_study.replace(/^year\s*/i, 'Year ')}`
               : ''}
           </p>
-          <div className="nominee-card-points">
+
+          {/* Points tally - hidden until voting commences */}
+          {/* <div className="nominee-card-points">
             <div>
               <span className="points-label">Points</span>
             </div>
             <span className="points-value">
               {(nominee.total_points || 0).toLocaleString()}
             </span>
-          </div>
+          </div> */}
         </div>
       </Link>
 
-      {/* Vote button — separate from the profile link */}
-      {onVote && (
+      {/* Vote button commented out for nomination period */}
+      {/* {onVote && (
         <div className="nominee-card-vote">
           <button
             className="btn btn-gold btn-sm nominee-vote-btn"
@@ -52,7 +54,14 @@ export default function NomineeCard({ nominee, onVote }) {
             Vote
           </button>
         </div>
-      )}
+      )} */}
+
+      <div className="nominee-card-vote">
+        <div className="voting-soon-badge" id={`voting-soon-${nominee.id}`}>
+          <Clock size={12} />
+          <span>Voting Commencing Soon</span>
+        </div>
+      </div>
     </div>
   );
 }

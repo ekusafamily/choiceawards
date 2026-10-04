@@ -42,9 +42,13 @@ function PodiumCard({ nominee, rank }) {
         <span className="podium-category-tag">{nominee.categories.name}</span>
       )}
 
-      <div className="podium-points-pill">
+      {/* Points pill hidden until voting commences */}
+      {/* <div className="podium-points-pill">
         <Trophy size={14} />
         <span>{(nominee.total_points ?? 0).toLocaleString()} pts</span>
+      </div> */}
+      <div className="podium-status-pill">
+        <span>Voting Commencing Soon</span>
       </div>
     </Link>
   );
@@ -76,9 +80,13 @@ function NomineeRow({ nominee, rank }) {
         )}
       </div>
 
-      <div className="nominee-row-points">
+      {/* Points tally hidden until voting commences */}
+      {/* <div className="nominee-row-points">
         <Trophy size={13} />
         <span>{(nominee.total_points ?? 0).toLocaleString()}</span>
+      </div> */}
+      <div className="nominee-row-soon">
+        <span>Voting Commencing Soon</span>
       </div>
 
       <ChevronRight size={16} className="nominee-row-chevron" />
