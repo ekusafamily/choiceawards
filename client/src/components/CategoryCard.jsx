@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import {
   Award, Users, Star, Camera, Megaphone, Code,
-  Trophy, Heart, Mic, Palette, Shield, Globe, User
+  Trophy, Heart, Mic, Palette, Shield, Globe, User, Music
 } from 'lucide-react';
 
 const iconMap = {
@@ -21,6 +21,8 @@ const iconMap = {
   'male-model': Heart,
   'female-model': Heart,
   'student-artist': Palette,
+  'music-artist-of-the-year': Music,
+  'music-artist': Music,
   'association-club-leader': Megaphone,
   'association-leader': Megaphone,
   'marketer': Mic,

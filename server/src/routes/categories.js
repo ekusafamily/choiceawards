@@ -33,6 +33,7 @@ router.get('/:slug', async (req, res, next) => {
       'female-council-member': 'female-student-leader',
       'student-leader': 'male-student-leader',
       'association-leader': 'association-club-leader',
+      'music-artist': 'music-artist-of-the-year',
     };
     if (slugAliases[slug]) {
       slug = slugAliases[slug];
