@@ -166,7 +166,8 @@ export default function Navbar() {
               Home
             </NavLink>
           </li>
-          <li>
+          {/* Nominees link hidden during nomination phase */}
+          {/* <li>
             <NavLink
               to="/nominees"
               onClick={() => {
@@ -177,16 +178,17 @@ export default function Navbar() {
             >
               Nominees
             </NavLink>
-          </li>
+          </li> */}
           <li>
             <NavLink
-              to="/results"
+              to="/successful-nominations"
               onClick={() => {
                 setOpen(false);
                 setSearchOpen(false);
               }}
+              id="navbar-successful-nominations-link"
             >
-              Results
+              Successful Nominations
             </NavLink>
           </li>
           <li>

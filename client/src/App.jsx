@@ -10,6 +10,8 @@ import Nominate from './pages/Nominate';
 import Results from './pages/Results';
 import Admin from './pages/Admin';
 import TopNominees from './pages/TopNominees';
+import SuccessfulNominations from './pages/SuccessfulNominations';
+import CountdownStickyFooter from './components/CountdownStickyFooter';
 
 export default function App() {
   return (
@@ -24,11 +26,13 @@ export default function App() {
           <Route path="/nominees/:id" element={<NomineeProfile />} />
           <Route path="/nominate" element={<Nominate />} />
           <Route path="/nominees" element={<TopNominees />} />
-          <Route path="/results" element={<Results />} />
+          <Route path="/successful-nominations" element={<SuccessfulNominations />} />
+          <Route path="/results" element={<SuccessfulNominations />} />
           <Route path="/admin" element={<Admin />} />
         </Routes>
       </main>
       <Footer />
+      <CountdownStickyFooter />
     </BrowserRouter>
   );
 }

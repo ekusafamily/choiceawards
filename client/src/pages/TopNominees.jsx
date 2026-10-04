@@ -156,7 +156,8 @@ export default function TopNominees() {
 
         {!loading && !error && nominees.length > 0 && (
           <>
-            {podium.length > 0 && (
+            {/* Podium section hidden during nomination phase */}
+            {/* {podium.length > 0 && (
               <section className="top-nominees-podium-section">
                 <h2 className="section-label">
                   <Trophy size={18} /> Podium
@@ -167,16 +168,16 @@ export default function TopNominees() {
                   ))}
                 </div>
               </section>
-            )}
+            )} */}
 
-            {rest.length > 0 && (
+            {nominees.length > 0 && (
               <section className="top-nominees-list-section">
                 <h2 className="section-label">
-                  <Medal size={18} /> Full Rankings
+                  <Medal size={18} /> Nominees
                 </h2>
                 <div className="top-nominees-list">
-                  {rest.map((nom, i) => (
-                    <NomineeRow key={nom.id} nominee={nom} rank={i + 4} />
+                  {nominees.map((nom, i) => (
+                    <NomineeRow key={nom.id} nominee={nom} rank={i + 1} />
                   ))}
                 </div>
               </section>
