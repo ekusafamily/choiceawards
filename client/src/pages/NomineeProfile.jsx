@@ -240,8 +240,8 @@ export default function NomineeProfile() {
                   aria-label="Share on WhatsApp"
                   id="profile-share-whatsapp"
                 >
-                  <WhatsAppIcon size={16} className="whatsapp-icon" />
-                  <span>WhatsApp</span>
+                  <WhatsAppIcon size={18} className="whatsapp-icon" />
+                  <span>Share on WhatsApp</span>
                 </button>
                 <button
                   className="share-btn share-btn-twitter"
@@ -249,7 +249,7 @@ export default function NomineeProfile() {
                   aria-label="Share on X"
                   id="profile-share-x"
                 >
-                  <XIcon size={13} className="x-icon" />
+                  <XIcon size={14} className="x-icon" />
                   <span>X</span>
                 </button>
                 <button
@@ -258,16 +258,16 @@ export default function NomineeProfile() {
                   aria-label="Share on Facebook"
                   id="profile-share-fb"
                 >
-                  <FacebookIcon size={14} className="fb-icon" />
+                  <FacebookIcon size={15} className="fb-icon" />
                   <span>Facebook</span>
                 </button>
                 <button
-                  className={`share-btn ${copied ? 'copied' : ''}`}
+                  className={`share-btn share-btn-copy ${copied ? 'copied' : ''}`}
                   onClick={() => handleShare('copy')}
                   aria-label="Copy nominee profile link"
                   id="profile-copy-btn"
                 >
-                  {copied ? <Check size={14} color="var(--color-primary)" /> : <Copy size={14} />} {copied ? 'Copied!' : 'Copy Link'}
+                  {copied ? <Check size={14} /> : <Copy size={14} />} {copied ? 'Copied!' : 'Copy Link'}
                 </button>
               </div>
             </div>

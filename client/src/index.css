@@ -1620,6 +1620,11 @@ select.form-control {
   grid-template-columns: 300px 1fr;
   gap: var(--space-2xl);
   margin-bottom: var(--space-2xl);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-2xl);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
 
 .profile-photo {
@@ -1682,6 +1687,11 @@ select.form-control {
 
 .profile-bio {
   margin-bottom: var(--space-xl);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
 }
 
 .profile-bio h3 {
@@ -1694,88 +1704,146 @@ select.form-control {
 .profile-share {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-sm);
+  align-items: center;
+  gap: 10px;
   margin-top: var(--space-lg);
 }
 
 .share-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  padding: 8px 16px;
-  border: 1px solid var(--color-border);
+  padding: 9px 16px;
   border-radius: var(--radius-sm);
-  background: var(--color-bg);
-  color: var(--color-text-muted);
-  font-size: 0.85rem;
-  font-weight: 500;
+  font-size: 0.86rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all var(--transition-fast);
   font-family: var(--font-body);
+  text-decoration: none;
+  line-height: 1;
 }
 
-.share-btn:hover {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-}
-
-/* WhatsApp styled button & animated icon */
+/* WhatsApp: THE STANDOUT HERO BUTTON */
 .share-btn-whatsapp {
-  border-color: rgba(37, 211, 102, 0.4);
-  background: rgba(37, 211, 102, 0.08);
-  color: #25D366;
-  font-weight: 600;
-  box-shadow: 0 1px 3px rgba(37, 211, 102, 0.12);
+  background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+  color: #FFFFFF !important;
+  border: 1px solid #1EBE5D;
+  font-weight: 700;
+  font-size: 0.92rem;
+  padding: 10px 20px;
+  box-shadow: 0 4px 16px rgba(37, 211, 102, 0.45);
 }
 
 .share-btn-whatsapp .whatsapp-icon {
-  color: #25D366;
-  filter: drop-shadow(0 1px 2px rgba(37, 211, 102, 0.25));
-  transition: transform var(--transition-fast), filter var(--transition-fast);
+  color: #FFFFFF !important;
+  fill: #FFFFFF !important;
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));
+  transition: transform var(--transition-fast);
 }
 
 .share-btn-whatsapp:hover {
-  background: #25D366;
-  border-color: #25D366;
-  color: #ffffff;
-  box-shadow: 0 4px 16px rgba(37, 211, 102, 0.4);
-  transform: translateY(-2px);
+  background: linear-gradient(135deg, #2ae06d 0%, #18a392 100%);
+  border-color: #2ae06d;
+  color: #FFFFFF !important;
+  box-shadow: 0 6px 24px rgba(37, 211, 102, 0.65);
+  transform: translateY(-2px) scale(1.02);
 }
 
 .share-btn-whatsapp:hover .whatsapp-icon {
-  color: #ffffff;
-  transform: scale(1.15) rotate(-5deg);
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  transform: scale(1.18) rotate(-6deg);
 }
 
 .share-btn-whatsapp:active {
-  transform: translateY(0);
+  transform: translateY(0) scale(0.99);
+}
+
+/* X (Twitter): High-Contrast Obsidian Black */
+.share-btn-twitter {
+  background: #000000;
+  color: #FFFFFF !important;
+  border: 1px solid #27272A;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22);
+}
+
+.share-btn-twitter .x-icon {
+  color: #FFFFFF !important;
+  fill: #FFFFFF !important;
+  flex-shrink: 0;
 }
 
 .share-btn-twitter:hover {
-  border-color: #1da1f2;
-  color: #1da1f2;
-  background: rgba(29, 161, 242, 0.08);
+  background: #18181B;
+  border-color: #52525B;
+  color: #FFFFFF !important;
   transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+.share-btn-twitter:active {
+  transform: translateY(0);
+}
+
+/* Facebook: Vibrant Brand Royal Blue */
+.share-btn-facebook {
+  background: #1877F2;
+  color: #FFFFFF !important;
+  border: 1px solid #166FE5;
+  box-shadow: 0 2px 10px rgba(24, 119, 242, 0.35);
+}
+
+.share-btn-facebook .fb-icon {
+  color: #FFFFFF !important;
+  fill: #FFFFFF !important;
+  flex-shrink: 0;
 }
 
 .share-btn-facebook:hover {
-  border-color: #1877f2;
-  color: #1877f2;
-  background: rgba(24, 119, 242, 0.08);
+  background: #0C63D4;
+  border-color: #0C63D4;
+  color: #FFFFFF !important;
   transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(24, 119, 242, 0.55);
 }
 
+.share-btn-facebook:active {
+  transform: translateY(0);
+}
+
+/* Copy Link: Clean Neutral Slate / Gold when copied */
+.share-btn-copy,
+.share-btn:not(.share-btn-whatsapp):not(.share-btn-twitter):not(.share-btn-facebook) {
+  background: #FFFFFF;
+  color: #374151;
+  border: 1.5px solid #D1D5DB;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.share-btn-copy:hover,
+.share-btn:not(.share-btn-whatsapp):not(.share-btn-twitter):not(.share-btn-facebook):hover {
+  background: #F3F4F6;
+  border-color: #9CA3AF;
+  color: #111827;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.share-btn-copy.copied,
 .share-btn.copied {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-  background: rgba(27, 94, 32, 0.08);
-  font-weight: 600;
+  background: #FEF3C7;
+  border-color: #F59E0B;
+  color: #92400E;
+  font-weight: 700;
+  box-shadow: 0 2px 10px rgba(245, 158, 11, 0.35);
 }
 
 @media (max-width: 768px) {
   .profile-header {
     grid-template-columns: 1fr;
+    padding: var(--space-lg) var(--space-md);
+    gap: var(--space-lg);
   }
 
   .profile-photo {

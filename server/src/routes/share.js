@@ -419,6 +419,76 @@ async function renderNomineeSharePage(req, res) {
     .status-info { background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.4); }
     .status-success { background: rgba(34, 197, 94, 0.2); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.4); }
     .status-error { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); }
+    .share-section {
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      text-align: left;
+    }
+    .share-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: rgba(255, 255, 255, 0.6);
+      margin-bottom: 8px;
+      display: block;
+      font-weight: 700;
+    }
+    .share-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .standalone-share-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 10px 14px;
+      border-radius: 9px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s ease;
+      border: none;
+      line-height: 1;
+      font-family: inherit;
+    }
+    .standalone-share-btn.btn-whatsapp {
+      flex: 2;
+      background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+      color: #ffffff !important;
+      box-shadow: 0 4px 16px rgba(37, 211, 102, 0.45);
+      border: 1px solid #1EBE5D;
+    }
+    .standalone-share-btn.btn-whatsapp:hover {
+      background: linear-gradient(135deg, #2ae06d 0%, #17a998 100%);
+      box-shadow: 0 6px 22px rgba(37, 211, 102, 0.65);
+      transform: translateY(-2px);
+    }
+    .standalone-share-btn.btn-twitter {
+      background: #000000;
+      color: #ffffff !important;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 10px 14px;
+    }
+    .standalone-share-btn.btn-twitter:hover {
+      background: #18181B;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+    .standalone-share-btn.btn-copy {
+      flex: 1.2;
+      background: #ffffff;
+      color: #1f2937 !important;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .standalone-share-btn.btn-copy:hover {
+      background: #f3f4f6;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
     .explore-link {
       display: inline-block;
       margin-top: 20px;
@@ -460,6 +530,23 @@ async function renderNomineeSharePage(req, res) {
       </button>
 
       <div id="vote-status" class="status-msg status-info" style="display: none;"></div>
+    </div>
+
+    <!-- Social Sharing Row -->
+    <div class="share-section">
+      <span class="share-label">Share with Comrades</span>
+      <div class="share-row">
+        <a href="https://wa.me/?text=${encodeURIComponent(`${shareTitle}\n${targetUrl}`)}" target="_blank" rel="noopener noreferrer" class="standalone-share-btn btn-whatsapp" id="share-whatsapp-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.3 20.63C8.75 21.41 10.38 21.83 12.04 21.83C17.5 21.83 21.95 17.38 21.95 11.92C21.95 9.27 20.92 6.78 19.05 4.91C17.18 3.03 14.69 2 12.04 2ZM12.04 20.15C10.56 20.15 9.11 19.76 7.85 19.01L7.55 18.83L4.44 19.65L5.27 16.61L5.07 16.29C4.24 14.97 3.81 13.46 3.81 11.91C3.81 7.37 7.5 3.68 12.05 3.68C14.25 3.68 16.31 4.54 17.87 6.1C19.42 7.66 20.28 9.72 20.27 11.92C20.28 16.46 16.58 20.15 12.04 20.15ZM16.57 14.33C16.32 14.21 15.1 13.61 14.88 13.52C14.65 13.44 14.49 13.4 14.32 13.65C14.16 13.89 13.69 14.45 13.55 14.61C13.41 14.77 13.26 14.79 13.02 14.67C12.77 14.55 11.98 14.29 11.04 13.45C10.31 12.8 9.81 11.99 9.67 11.75C9.53 11.51 9.65 11.37 9.77 11.25C9.88 11.14 10.02 10.96 10.14 10.82C10.26 10.68 10.3 10.57 10.38 10.41C10.46 10.25 10.42 10.11 10.36 9.99C10.3 9.86 9.81 8.67 9.61 8.18C9.41 7.7 9.21 7.77 9.06 7.76L8.59 7.75C8.42 7.75 8.16 7.81 7.93 8.06C7.71 8.3 7.07 8.9 7.07 10.12C7.07 11.34 7.96 12.52 8.08 12.68C8.21 12.84 9.82 15.33 12.29 16.39C12.88 16.64 13.34 16.8 13.69 16.91C14.28 17.1 14.82 17.07 15.25 17.01C15.73 16.94 16.72 16.41 16.92 15.84C17.13 15.27 17.13 14.79 17.07 14.68C17.01 14.58 16.82 14.46 16.57 14.33Z"/></svg>
+          Share on WhatsApp
+        </a>
+        <a href="https://twitter.com/intent/tweet?text=${encodeURIComponent(shareTitle)}&url=${encodeURIComponent(targetUrl)}" target="_blank" rel="noopener noreferrer" class="standalone-share-btn btn-twitter" title="Share on X">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+        </a>
+        <button type="button" class="standalone-share-btn btn-copy" id="share-copy-btn" onclick="navigator.clipboard.writeText('${escapeHtml(targetUrl)}'); this.textContent = 'Copied!'; setTimeout(() => this.textContent = 'Copy Link', 2500);">
+          Copy Link
+        </button>
+      </div>
     </div>
 
     <a href="/" class="explore-link">
