@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
   Search, X, User, Award, Trophy, ChevronRight,
   Sparkles, Shield, Users, Star, Palette, Code,
-  Camera, Megaphone, ArrowUpRight, Clock, Music
+  Camera, Megaphone, ArrowUpRight, Clock, Music, Crown
 } from 'lucide-react';
 
 const CATEGORY_ICON_MAP = {
@@ -14,6 +14,8 @@ const CATEGORY_ICON_MAP = {
   'student-artist': Palette,
   'music-artist-of-the-year': Music,
   'music-artist': Music,
+  'ambassador-of-the-year': Crown,
+  'ambassador': Crown,
   'photographer-videographer': Camera,
   'association-club-leader': Megaphone,
   'male-sports-person': Trophy,
@@ -27,6 +29,7 @@ const POPULAR_SEARCHES = [
   'Male Student Leader',
   'Female Student Leader',
   'Music Artist',
+  'Ambassador',
   'Sports Captain',
   'Student Artist',
   'Brian',

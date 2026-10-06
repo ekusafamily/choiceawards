@@ -83,8 +83,9 @@ INSERT INTO categories (name, slug, type, display_order) VALUES
   ('Campus Personality of the Year', 'campus-personality', 'individual', 18),
   ('Tech Developer of the Year', 'tech-developer', 'individual', 19),
   ('Music Artist of the Year', 'music-artist-of-the-year', 'individual', 20),
-  ('Association of the Year', 'association-of-year', 'organization', 21),
-  ('Club of the Year', 'club-of-year', 'organization', 22)
+  ('Ambassador of the Year', 'ambassador-of-the-year', 'individual', 21),
+  ('Association of the Year', 'association-of-year', 'organization', 22),
+  ('Club of the Year', 'club-of-year', 'organization', 23)
 ON CONFLICT (slug) DO NOTHING;
 
 -- Enable Row Level Security
@@ -124,4 +125,26 @@ CREATE POLICY "Public Access for Nominee Images"
 CREATE POLICY "Allow public uploads for nominee images"
   ON storage.objects FOR INSERT
   WITH CHECK (bucket_id = 'nominee-images');
+
+-- ============================================================
+-- Contact Messages Table
+-- ============================================================
+CREATE TABLE IF NOT EXISTS contact_messages (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name TEXT NOT NULL,
+  email TEXT,
+  phone TEXT,
+  subject TEXT DEFAULT 'General Inquiry',
+  message TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'unread' CHECK (status IN ('unread', 'read', 'archived')),
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_contact_messages_created_at ON contact_messages(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_contact_messages_status ON contact_messages(status);
+
+ALTER TABLE contact_messages ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Anyone can submit contact messages" ON contact_messages FOR INSERT WITH CHECK (true);
+CREATE POLICY "Admins can view and manage contact messages" ON contact_messages FOR ALL USING (true);
+
 

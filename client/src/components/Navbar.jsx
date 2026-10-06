@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { Search, X, Menu, User, Award, ChevronRight } from 'lucide-react';
 import apiClient from '../api/client';
+import { openContactDrawer } from './ContactDrawer';
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
@@ -190,6 +191,20 @@ export default function Navbar() {
             >
               Successful Nominations
             </NavLink>
+          </li>
+          <li>
+            <button
+              type="button"
+              className="navbar-contact-link-btn"
+              onClick={() => {
+                setOpen(false);
+                setSearchOpen(false);
+                openContactDrawer();
+              }}
+              id="navbar-contact-btn"
+            >
+              Contact Us
+            </button>
           </li>
           <li>
             <NavLink

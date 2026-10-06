@@ -12,6 +12,7 @@ import Admin from './pages/Admin';
 import TopNominees from './pages/TopNominees';
 import SuccessfulNominations from './pages/SuccessfulNominations';
 import CountdownStickyFooter from './components/CountdownStickyFooter';
+import ContactDrawer from './components/ContactDrawer';
 
 export default function App() {
   return (
@@ -33,6 +34,7 @@ export default function App() {
       </main>
       <Footer />
       <CountdownStickyFooter />
+      <ContactDrawer />
     </BrowserRouter>
   );
 }

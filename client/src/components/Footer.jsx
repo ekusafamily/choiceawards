@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
-import { Award, MapPin, Mail, ExternalLink, ShieldCheck, Trophy, Sparkles } from 'lucide-react';
+import { Award, MapPin, Mail, ExternalLink, ShieldCheck, Trophy, Sparkles, MessageSquare } from 'lucide-react';
+import { openContactDrawer, OFFICIAL_EMAIL } from './ContactDrawer';
 
 export default function Footer() {
   const year = new Date().getFullYear();
@@ -57,6 +58,15 @@ export default function Footer() {
               <li>
                 <Link to="/successful-nominations">Successful Nominations</Link>
               </li>
+              <li>
+                <button
+                  type="button"
+                  className="footer-link-btn"
+                  onClick={openContactDrawer}
+                >
+                  Contact Us
+                </button>
+              </li>
             </ul>
           </div>
 
@@ -109,7 +119,16 @@ export default function Footer() {
               </li>
               <li>
                 <Mail size={16} className="contact-icon" />
-                <a href="mailto:info@dekutso.com">info@dekutso.com</a>
+                <a href={`mailto:${OFFICIAL_EMAIL}`}>{OFFICIAL_EMAIL}</a>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  className="footer-contact-open-btn"
+                  onClick={openContactDrawer}
+                >
+                  <MessageSquare size={13} /> Send Message to Committee
+                </button>
               </li>
             </ul>
 

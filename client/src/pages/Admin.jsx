@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import {
   ShieldCheck, Lock, LogOut, Check, X, Trash2, Plus, User,
   Trophy, Users, Award, ExternalLink, AlertCircle, CheckCircle,
-  Clock, Search, UploadCloud, Loader2
+  Clock, Search, UploadCloud, Loader2, MessageSquare, Mail, Phone,
+  MessageCircle
 } from 'lucide-react';
 import apiClient from '../api/client';
 import CourseSelect from '../components/CourseSelect';
@@ -19,14 +20,18 @@ export default function Admin() {
   const [isVerifying, setIsVerifying] = useState(false);
 
   // Dashboard state
-  const [activeTab, setActiveTab] = useState('nominations'); // 'nominations' | 'nominees' | 'categories'
+  const [activeTab, setActiveTab] = useState('nominations'); // 'nominations' | 'nominees' | 'categories' | 'messages'
   const [stats, setStats] = useState({ categoriesCount: 21, nomineesCount: 0, votesCount: 0, totalPoints: 0, pendingNominations: 0 });
   const [nominations, setNominations] = useState([]);
   const [nominees, setNominees] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [messages, setMessages] = useState([]);
   const [nominationFilter, setNominationFilter] = useState('pending');
   const [nomineeCategoryFilter, setNomineeCategoryFilter] = useState('');
   const [nomineeSearch, setNomineeSearch] = useState('');
+  const [messageFilter, setMessageFilter] = useState('all'); // 'all' | 'unread' | 'read'
+  const [messageSearch, setMessageSearch] = useState('');
+  const [updatingMessageId, setUpdatingMessageId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [actionMessage, setActionMessage] = useState({ text: '', type: 'success' });
 
@@ -99,16 +104,18 @@ export default function Admin() {
   async function loadDashboardData() {
     setLoading(true);
     try {
-      const [statsRes, nomsRes, nomineesRes, catsRes] = await Promise.all([
+      const [statsRes, nomsRes, nomineesRes, catsRes, messagesRes] = await Promise.all([
         apiClient.get('/stats').catch(() => ({ data: null })),
         apiClient.get('/nominations').catch(() => ({ data: [] })),
         apiClient.get('/nominees').catch(() => ({ data: [] })),
         apiClient.get('/categories').catch(() => ({ data: [] })),
+        apiClient.get('/contact').catch(() => ({ data: [] })),
       ]);
 
       if (statsRes.data) setStats(statsRes.data);
       if (nomsRes.data) setNominations(nomsRes.data);
       if (nomineesRes.data) setNominees(nomineesRes.data);
+      if (messagesRes.data) setMessages(messagesRes.data);
       if (catsRes.data) {
         setCategories(catsRes.data);
         if (!newNominee.category_id && catsRes.data.length > 0) {
@@ -234,6 +241,40 @@ export default function Admin() {
     }
   }
 
+  // Toggle message read/unread status
+  async function handleToggleMessageStatus(id, currentStatus) {
+    const nextStatus = currentStatus === 'unread' ? 'read' : 'unread';
+    try {
+      setUpdatingMessageId(id);
+      await apiClient.patch(`/contact/${id}`, { status: nextStatus });
+      setMessages((prev) =>
+        prev.map((m) => (m.id === id ? { ...m, status: nextStatus } : m))
+      );
+      flashMessage(`Message marked as ${nextStatus}!`);
+    } catch (err) {
+      console.error('Failed to update message status:', err);
+      flashMessage('Failed to update message status.', 'error');
+    } finally {
+      setUpdatingMessageId(null);
+    }
+  }
+
+  // Delete message permanently
+  async function handleDeleteMessage(id) {
+    if (!window.confirm('Are you sure you want to delete this message permanently?')) return;
+    try {
+      setUpdatingMessageId(id);
+      await apiClient.delete(`/contact/${id}`);
+      setMessages((prev) => prev.filter((m) => m.id !== id));
+      flashMessage('Message deleted successfully.');
+    } catch (err) {
+      console.error('Failed to delete message:', err);
+      flashMessage('Failed to delete message.', 'error');
+    } finally {
+      setUpdatingMessageId(null);
+    }
+  }
+
   // Filtered nominations
   const filteredNominations = nominations.filter((n) => {
     if (nominationFilter === 'all') return true;
@@ -248,6 +289,22 @@ export default function Admin() {
         (nom.course && nom.course.toLowerCase().includes(nomineeSearch.toLowerCase()))
       : true;
     return matchesCat && matchesSearch;
+  });
+
+  // Filtered contact messages
+  const unreadMessagesCount = messages.filter((m) => m.status === 'unread').length;
+  const filteredMessages = messages.filter((m) => {
+    if (messageFilter !== 'all' && m.status !== messageFilter) return false;
+    if (messageSearch.trim()) {
+      const q = messageSearch.toLowerCase();
+      const matchName = m.name?.toLowerCase().includes(q);
+      const matchEmail = m.email?.toLowerCase().includes(q);
+      const matchPhone = m.phone?.toLowerCase().includes(q);
+      const matchSubject = m.subject?.toLowerCase().includes(q);
+      const matchMsg = m.message?.toLowerCase().includes(q);
+      return matchName || matchEmail || matchPhone || matchSubject || matchMsg;
+    }
+    return true;
   });
 
   // If not logged in, render passcode screen
@@ -373,6 +430,14 @@ export default function Admin() {
             <div className="stat-card-value gold-accent">{(stats.totalPoints || 0).toLocaleString()}</div>
             <div className="stat-card-foot">Vote points accumulated</div>
           </div>
+
+          <div className={`admin-stat-card ${unreadMessagesCount > 0 ? 'highlight-gold' : ''}`}>
+            <div className="stat-card-label">Inquiries & Feedback</div>
+            <div className="stat-card-value">
+              {unreadMessagesCount} <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>unread</span>
+            </div>
+            <div className="stat-card-foot">{messages.length} total messages received</div>
+          </div>
         </div>
 
         {/* Tab Navigation */}
@@ -400,6 +465,19 @@ export default function Admin() {
           >
             <Award size={18} />
             Categories ({categories.length})
+          </button>
+
+          <button
+            className={`admin-tab-btn ${activeTab === 'messages' ? 'active' : ''}`}
+            onClick={() => setActiveTab('messages')}
+          >
+            <MessageSquare size={18} />
+            Messages ({messages.length})
+            {unreadMessagesCount > 0 && (
+              <span className="tab-pill-badge" style={{ background: '#ef4444', color: '#FFFFFF' }}>
+                {unreadMessagesCount} new
+              </span>
+            )}
           </button>
         </div>
 
@@ -696,6 +774,198 @@ export default function Admin() {
                 );
               })}
             </div>
+          </div>
+        )}
+
+        {/* TAB 4: Contact Messages & Inquiries */}
+        {activeTab === 'messages' && (
+          <div className="admin-content-card">
+            <div className="admin-card-header">
+              <div>
+                <h2>Messages & Inquiries</h2>
+                <p>Comrade feedback, inquiries, and support messages sent via the Contact Us sidebar.</p>
+              </div>
+
+              <div style={{ display: 'flex', gap: 'var(--space-sm)', flexWrap: 'wrap', alignItems: 'center' }}>
+                {/* Search */}
+                <div className="admin-search-box">
+                  <Search size={16} />
+                  <input
+                    type="text"
+                    placeholder="Search messages, names, contacts..."
+                    value={messageSearch}
+                    onChange={(e) => setMessageSearch(e.target.value)}
+                  />
+                  {messageSearch && (
+                    <button
+                      type="button"
+                      className="search-clear-btn"
+                      onClick={() => setMessageSearch('')}
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+
+                {/* Filter Pills */}
+                <div className="filter-pills">
+                  <button
+                    className={`pill-btn ${messageFilter === 'all' ? 'active' : ''}`}
+                    onClick={() => setMessageFilter('all')}
+                  >
+                    All ({messages.length})
+                  </button>
+                  <button
+                    className={`pill-btn ${messageFilter === 'unread' ? 'active' : ''}`}
+                    onClick={() => setMessageFilter('unread')}
+                  >
+                    Unread ({unreadMessagesCount})
+                  </button>
+                  <button
+                    className={`pill-btn ${messageFilter === 'read' ? 'active' : ''}`}
+                    onClick={() => setMessageFilter('read')}
+                  >
+                    Read ({messages.length - unreadMessagesCount})
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {loading ? (
+              <div className="loading-spinner">
+                <div className="spinner" />
+              </div>
+            ) : filteredMessages.length === 0 ? (
+              <div className="empty-state">
+                <MessageSquare size={48} />
+                <h3>No messages found</h3>
+                <p>
+                  {messageSearch || messageFilter !== 'all'
+                    ? 'Try adjusting your search query or filter.'
+                    : 'When students or partners reach out via the Contact Us sidebar, their messages will appear here.'}
+                </p>
+              </div>
+            ) : (
+              <div className="admin-messages-list">
+                {filteredMessages.map((msg) => {
+                  const isUnread = msg.status === 'unread';
+                  const dateStr = msg.created_at
+                    ? new Date(msg.created_at).toLocaleString('en-KE', {
+                        dateStyle: 'medium',
+                        timeStyle: 'short',
+                      })
+                    : 'Recently';
+
+                  // Format phone for WhatsApp if valid Kenyan format or digits
+                  const rawPhone = msg.phone || (msg.contact && !msg.contact.includes('@') ? msg.contact : '');
+                  const cleanPhone = rawPhone.replace(/[^0-9+]/g, '');
+                  const waNumber = cleanPhone.startsWith('0')
+                    ? '254' + cleanPhone.slice(1)
+                    : cleanPhone.startsWith('+')
+                    ? cleanPhone.replace('+', '')
+                    : cleanPhone;
+
+                  const emailAddress = msg.email || (msg.contact && msg.contact.includes('@') ? msg.contact : '');
+
+                  return (
+                    <div
+                      key={msg.id}
+                      className={`admin-message-card ${isUnread ? 'is-unread' : 'is-read'}`}
+                    >
+                      <div className="admin-message-header">
+                        <div className="admin-message-sender-info">
+                          <div className={`sender-avatar ${isUnread ? 'avatar-unread' : ''}`}>
+                            <User size={18} />
+                          </div>
+                          <div>
+                            <div className="sender-name-row">
+                              <h3 className="sender-name">{msg.name}</h3>
+                              <span className={`message-status-pill status-${msg.status || 'unread'}`}>
+                                {isUnread ? 'Unread' : 'Read'}
+                              </span>
+                              <span className="message-subject-pill">
+                                {msg.subject || 'General Inquiry'}
+                              </span>
+                            </div>
+                            <div className="sender-meta-row">
+                              {emailAddress && (
+                                <a
+                                  href={`mailto:${emailAddress}?subject=Re: ${encodeURIComponent(msg.subject || 'Inquiry')}`}
+                                  className="sender-contact-link"
+                                  title="Send Email"
+                                >
+                                  <Mail size={13} /> {emailAddress}
+                                </a>
+                              )}
+                              {rawPhone && (
+                                <span className="sender-contact-link">
+                                  <Phone size={13} /> {rawPhone}
+                                </span>
+                              )}
+                              <span className="sender-date">
+                                <Clock size={13} /> {dateStr}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Actions top */}
+                        <div className="admin-message-actions-top">
+                          <button
+                            type="button"
+                            className={`btn btn-sm ${isUnread ? 'btn-primary' : 'btn-outline'}`}
+                            onClick={() => handleToggleMessageStatus(msg.id, msg.status || 'unread')}
+                            disabled={updatingMessageId === msg.id}
+                            title={isUnread ? 'Mark as Read' : 'Mark as Unread'}
+                          >
+                            <Check size={14} />
+                            <span>{isUnread ? 'Mark Read' : 'Mark Unread'}</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            className="btn btn-outline btn-sm btn-danger-hover"
+                            onClick={() => handleDeleteMessage(msg.id)}
+                            disabled={updatingMessageId === msg.id}
+                            title="Delete message permanently"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Message Content */}
+                      <div className="admin-message-body">
+                        <p>{msg.message}</p>
+                      </div>
+
+                      {/* Quick reply bar */}
+                      <div className="admin-message-footer">
+                        <span className="reply-label">Quick Actions:</span>
+                        {emailAddress && (
+                          <a
+                            href={`mailto:${emailAddress}?subject=Re: [DeKUTSO Awards] ${encodeURIComponent(msg.subject || 'Your Inquiry')}`}
+                            className="btn btn-outline btn-xs"
+                          >
+                            <Mail size={12} /> Reply via Email
+                          </a>
+                        )}
+                        {waNumber && waNumber.length >= 9 && (
+                          <a
+                            href={`https://wa.me/${waNumber}?text=${encodeURIComponent(`Hello ${msg.name}, thank you for contacting the DeKUTSO Comrade Choice Awards Secretariat regarding "${msg.subject || 'your inquiry'}". `)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn btn-outline btn-xs btn-whatsapp"
+                          >
+                            <MessageCircle size={12} /> Reply on WhatsApp
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 

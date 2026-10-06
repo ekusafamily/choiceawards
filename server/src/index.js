@@ -14,6 +14,7 @@ const statsRouter = require('./routes/stats');
 const uploadRouter = require('./routes/upload');
 const adminRouter = require('./routes/admin');
 const shareRouter = require('./routes/share');
+const contactRouter = require('./routes/contact');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -57,6 +58,8 @@ app.use('/api/leaderboard', leaderboardRouter);
 app.use('/api/stats', statsRouter);
 app.use('/api/upload', uploadRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api/contact', contactRouter);
+app.use('/api/messages', contactRouter);
 
 function escapeHtml(str) {
   if (!str) return '';
