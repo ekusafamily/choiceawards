@@ -100,6 +100,7 @@ export default function TopNominees() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    document.title = 'Top Nominees & Leaderboard • DeKUTSO Comrade Choice Awards 2026';
     async function fetchNominees() {
       try {
         const { data } = await apiClient.get('/nominees');

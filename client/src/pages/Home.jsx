@@ -19,6 +19,7 @@ export default function Home() {
   const [votingNominee, setVotingNominee] = useState(null);
 
   useEffect(() => {
+    document.title = 'DeKUTSO Comrade Choice Award 2026 | Dedan Kimathi University of Technology';
     async function fetchData() {
       try {
         const [catsRes, statsRes, nomRes] = await Promise.all([

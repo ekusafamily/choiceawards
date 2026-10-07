@@ -34,3 +34,7 @@ Thumbs.db
 # Local runtime data
 server/data/*.json
 !server/data/.gitkeep
+
+# Documents & receipts
+*.pdf
+

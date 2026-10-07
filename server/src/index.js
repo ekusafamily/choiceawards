@@ -15,6 +15,7 @@ const uploadRouter = require('./routes/upload');
 const adminRouter = require('./routes/admin');
 const shareRouter = require('./routes/share');
 const contactRouter = require('./routes/contact');
+const sitemapRouter = require('./routes/sitemap');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -37,6 +38,10 @@ const clientDistDir = getClientDistDir();
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Google Search indexing routes (/sitemap.xml and /robots.txt)
+app.use('/', sitemapRouter);
+app.use('/api', sitemapRouter);
 
 // Serve static frontend assets if built
 if (clientDistDir) {

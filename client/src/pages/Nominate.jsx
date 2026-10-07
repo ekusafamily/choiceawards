@@ -6,6 +6,7 @@ export default function Nominate() {
   const [categories, setCategories] = useState([]);
 
   useEffect(() => {
+    document.title = 'Nominate a Candidate • DeKUTSO Comrade Choice Awards 2026';
     async function fetch() {
       try {
         const { data } = await apiClient.get('/categories');

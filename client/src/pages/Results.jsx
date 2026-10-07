@@ -11,6 +11,7 @@ export default function Results() {
   const [lbLoading, setLbLoading] = useState(false);
 
   useEffect(() => {
+    document.title = 'Results & Leaderboards • DeKUTSO Comrade Choice Awards 2026';
     async function fetch() {
       try {
         const { data } = await apiClient.get('/categories');

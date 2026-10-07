@@ -101,7 +101,7 @@ export default function Footer() {
                 <span className="footer-text-muted">Clubs & Student Associations</span>
               </li>
               <li>
-                <span className="footer-text-muted">Hosted on dekutso.com</span>
+                <span className="footer-text-muted">Hosted on dekutsochoiceawards.site</span>
               </li>
             </ul>
           </div>

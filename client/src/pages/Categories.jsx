@@ -8,6 +8,7 @@ export default function Categories() {
   const [filter, setFilter] = useState('all');
 
   useEffect(() => {
+    document.title = 'Award Categories • DeKUTSO Comrade Choice Awards 2026';
     async function fetch() {
       try {
         const { data } = await apiClient.get('/categories');

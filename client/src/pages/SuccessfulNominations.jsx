@@ -29,6 +29,7 @@ export default function SuccessfulNominations() {
   const [selectedCategory, setSelectedCategory] = useState('all');
 
   useEffect(() => {
+    document.title = 'Successful Nominations • DeKUTSO Comrade Choice Awards 2026';
     async function loadData() {
       try {
         const [nomsRes, catsRes] = await Promise.all([

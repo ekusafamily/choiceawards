@@ -20,6 +20,9 @@ export default function CategoryDetail() {
       try {
         const { data } = await apiClient.get(`/categories/${slug}`);
         setCategory(data);
+        if (data?.name) {
+          document.title = `${data.name} • DeKUTSO Comrade Choice Awards 2026`;
+        }
         setNominees(data.nominees || []);
       } catch (err) {
         console.error('Failed to load category:', err);

@@ -1,0 +1,22 @@
+# robots.txt for DeKUTSO Comrade Choice Awards 2026
+# https://dekutsochoiceawards.site
+
+User-agent: *
+Allow: /
+Allow: /nominate
+Allow: /successful-nominations
+Allow: /categories
+Allow: /categories/
+Allow: /nominees
+Allow: /nominees/
+Allow: /results
+
+# Protect administrative endpoints
+Disallow: /admin
+Disallow: /api/
+
+# Crawler delay to prevent server overload
+Crawl-delay: 1
+
+# Sitemaps
+Sitemap: https://dekutsochoiceawards.site/sitemap.xml
