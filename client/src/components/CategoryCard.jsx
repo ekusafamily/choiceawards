@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
 import {
   Award, Users, Star, Camera, Megaphone, Code,
-  Trophy, Heart, Mic, Palette, Shield, Globe, User, Music, Crown
+  Trophy, Heart, Mic, Palette, Shield, Globe, User, Music, Crown,
+  Flame, Mic2, Feather
 } from 'lucide-react';
 
 const iconMap = {
@@ -25,6 +26,12 @@ const iconMap = {
   'music-artist': Music,
   'ambassador-of-the-year': Crown,
   'ambassador': Crown,
+  'dance-crew-of-the-year': Flame,
+  'dance-crew': Flame,
+  'rapper-of-the-year': Mic2,
+  'rapper': Mic2,
+  'poet-of-the-year': Feather,
+  'poet': Feather,
   'association-club-leader': Megaphone,
   'association-leader': Megaphone,
   'marketer': Mic,

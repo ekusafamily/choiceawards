@@ -451,15 +451,15 @@ The voting date is configured via environment variables:
 - **In `client/.env` (and `client/.env.example`):**
   ```env
   # Target date/time when voting officially commences (ISO-8601 format)
-  VITE_VOTING_START_DATE=2026-10-08T00:00:00+03:00
+  VITE_VOTING_START_DATE=2026-10-11T23:59:59+03:00
   ```
 - **In `server/.env` (and `server/.env.example`):**
   ```env
-  VOTING_START_DATE=2026-10-08T00:00:00+03:00
+  VOTING_START_DATE=2026-10-11T23:59:59+03:00
   ```
 
 > [!TIP]
-> You can set this to any valid ISO date/time string (e.g. `2026-10-08T00:00:00+03:00` or `2026-11-01T00:00:00+03:00`). The countdown dynamically calculates remaining **Days**, **Hours**, **Minutes**, and **Seconds** in real-time.
+> You can set this to any valid ISO date/time string (e.g. `2026-10-11T23:59:59+03:00` or `2026-11-01T00:00:00+03:00`). The countdown dynamically calculates remaining **Days**, **Hours**, **Minutes**, and **Seconds** in real-time.
 
 ### 7.2 Countdown Behavior
 - **While Countdown is Active (`diff > 0`)**:

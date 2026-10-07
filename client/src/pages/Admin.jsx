@@ -21,7 +21,7 @@ export default function Admin() {
 
   // Dashboard state
   const [activeTab, setActiveTab] = useState('nominations'); // 'nominations' | 'nominees' | 'categories' | 'messages'
-  const [stats, setStats] = useState({ categoriesCount: 21, nomineesCount: 0, votesCount: 0, totalPoints: 0, pendingNominations: 0 });
+  const [stats, setStats] = useState({ categoriesCount: 26, nomineesCount: 0, votesCount: 0, totalPoints: 0, pendingNominations: 0 });
   const [nominations, setNominations] = useState([]);
   const [nominees, setNominees] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -422,7 +422,7 @@ export default function Admin() {
           <div className="admin-stat-card">
             <div className="stat-card-label">Total Votes Cast</div>
             <div className="stat-card-value">{(stats.votesCount || 0).toLocaleString()}</div>
-            <div className="stat-card-foot">Across all 19 categories</div>
+            <div className="stat-card-foot">Across all {categories.length || 26} categories</div>
           </div>
 
           <div className="admin-stat-card">

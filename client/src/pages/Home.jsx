@@ -11,7 +11,7 @@ import { Target, CheckCircle2, Globe, Sparkles, HeartHandshake, Award, User, X }
 export default function Home() {
   const [categories, setCategories] = useState([]);
   const [allNominees, setAllNominees] = useState([]);
-  const [stats, setStats] = useState({ categoriesCount: 21, nomineesCount: 0, votesCount: 0 });
+  const [stats, setStats] = useState({ categoriesCount: 26, nomineesCount: 0, votesCount: 0 });
   const [nomineeCountMap, setNomineeCountMap] = useState({});
   const [topNomineeMap, setTopNomineeMap] = useState({});
   const [loading, setLoading] = useState(true);
@@ -320,7 +320,7 @@ export default function Home() {
               <h2>Award Categories</h2>
               <hr className="gold-line" />
               <p>
-                20+ categories covering individual achievements, student organizations,
+                25+ categories covering individual achievements, student organizations,
                 and special recognition.
               </p>
             </div>

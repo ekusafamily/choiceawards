@@ -35,6 +35,9 @@ router.get('/:slug', async (req, res, next) => {
       'association-leader': 'association-club-leader',
       'music-artist': 'music-artist-of-the-year',
       'ambassador': 'ambassador-of-the-year',
+      'dance-crew': 'dance-crew-of-the-year',
+      'rapper': 'rapper-of-the-year',
+      'poet': 'poet-of-the-year',
     };
     if (slugAliases[slug]) {
       slug = slugAliases[slug];

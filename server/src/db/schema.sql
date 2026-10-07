@@ -85,7 +85,10 @@ INSERT INTO categories (name, slug, type, display_order) VALUES
   ('Music Artist of the Year', 'music-artist-of-the-year', 'individual', 20),
   ('Ambassador of the Year', 'ambassador-of-the-year', 'individual', 21),
   ('Association of the Year', 'association-of-year', 'organization', 22),
-  ('Club of the Year', 'club-of-year', 'organization', 23)
+  ('Club of the Year', 'club-of-year', 'organization', 23),
+  ('Dance Crew of the Year', 'dance-crew-of-the-year', 'organization', 24),
+  ('Rapper of the Year', 'rapper-of-the-year', 'individual', 25),
+  ('Poet of the Year', 'poet-of-the-year', 'individual', 26)
 ON CONFLICT (slug) DO NOTHING;
 
 -- Enable Row Level Security
