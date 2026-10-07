@@ -37,4 +37,5 @@ server/data/*.json
 
 # Documents & receipts
 *.pdf
+Screenshot*.png
 

@@ -20,6 +20,20 @@ export default function Home() {
 
   useEffect(() => {
     document.title = 'DeKUTSO Comrade Choice Award 2026 | Dedan Kimathi University of Technology';
+    const setMeta = (prop, val) => {
+      const el = document.querySelector(`meta[property="${prop}"]`);
+      if (el) el.setAttribute('content', val);
+    };
+    const setTwitter = (name, val) => {
+      const el = document.querySelector(`meta[name="${name}"]`);
+      if (el) el.setAttribute('content', val);
+    };
+    setMeta('og:title', 'DeKUTSO Comrade Choice Awards 2026 | Dedan Kimathi University of Technology');
+    setMeta('og:description', 'Nominate, vote, and celebrate campus excellence at Dedan Kimathi University of Technology across 26 categories.');
+    setMeta('og:image', 'https://dekutsochoiceawards.site/homepage-share-preview.png');
+    setMeta('og:image:secure_url', 'https://dekutsochoiceawards.site/homepage-share-preview.png');
+    setTwitter('twitter:image', 'https://dekutsochoiceawards.site/homepage-share-preview.png');
+
     async function fetchData() {
       try {
         const [catsRes, statsRes, nomRes] = await Promise.all([
