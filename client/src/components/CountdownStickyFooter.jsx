@@ -98,9 +98,9 @@ export default function CountdownStickyFooter() {
             </div>
 
             <div className="countdown-sticky-titles">
-              <h4 className="countdown-main-title">Voting Commences In</h4>
+              <h4 className="countdown-main-title">Official Voting Begins In</h4>
               <p className="countdown-sub-title">
-                Target Launch: <strong>{targetFormatted || 'Coming Soon'}</strong> • Nominate before the deadline
+                Official Voting Begins on <strong>{targetFormatted || 'Oct 13, 2026'}</strong> • Nominate before the deadline
               </p>
             </div>
           </div>
