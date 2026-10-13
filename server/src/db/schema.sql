@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS votes (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   nominee_id UUID REFERENCES nominees(id) ON DELETE CASCADE,
   category_id UUID REFERENCES categories(id) ON DELETE CASCADE,
-  amount INT NOT NULL CHECK (amount >= 10),
+  amount INT NOT NULL CHECK (amount >= 1),
   points INT NOT NULL,
   transaction_id TEXT,
   voter_phone TEXT,

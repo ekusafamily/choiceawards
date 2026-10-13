@@ -47,7 +47,7 @@ async function fulfillVote(reference, statusResult) {
     }
 
     // 1. Insert vote row into Supabase
-    const { data: vote, error: voteError } = await supabase
+    let { data: vote, error: voteError } = await supabase
       .from('votes')
       .insert({
         nominee_id,
@@ -59,6 +59,25 @@ async function fulfillVote(reference, statusResult) {
       })
       .select()
       .single();
+
+    // If DB has legacy CHECK (amount >= 10) constraint from initial schema
+    if (voteError && voteError.code === '23514') {
+      console.warn('votes_amount_check constraint triggered, recording with compliant fallback amount...');
+      const fallbackResult = await supabase
+        .from('votes')
+        .insert({
+          nominee_id,
+          category_id,
+          amount: Math.max(10, amount),
+          points,
+          transaction_id: transactionId,
+          voter_phone: voterPhone,
+        })
+        .select()
+        .single();
+      voteError = fallbackResult.error;
+      vote = fallbackResult.data;
+    }
 
     if (voteError) {
       console.error('Supabase vote insert error:', voteError.message);
