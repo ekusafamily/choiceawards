@@ -401,10 +401,20 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
       <div
         className="modal-container voter-modal"
         onClick={(e) => e.stopPropagation()}
-        style={{ maxWidth: '500px', width: '94%' }}
+        style={{
+          maxWidth: '500px',
+          width: '94%',
+          background: '#FFFFFF',
+          borderRadius: '16px',
+          boxShadow: '0 24px 64px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(212, 160, 23, 0.25)',
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
+          maxHeight: 'calc(100dvh - 32px)',
+        }}
       >
         {/* Modal Header */}
-        <div className="modal-header voter-modal-header">
+        <div className="modal-header voter-modal-header" style={{ background: '#FAF9F6' }}>
           <div className="voter-modal-badge">
             <Trophy size={14} className="text-gold" />
             <span>OFFICIAL BALLOT</span>
@@ -421,10 +431,23 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
 
         {/* STEP 1: Ballot Selection & Email Verification */}
         {step === 'select' && (
-          <form onSubmit={handleInitiate}>
-            <div className="modal-body voter-modal-body">
+          <form onSubmit={handleInitiate} style={{ background: '#FFFFFF' }}>
+            <div className="modal-body voter-modal-body" style={{ background: '#FFFFFF', padding: '18px 20px' }}>
               {/* Nominee Profile Snapshot */}
-              <div className="voter-nominee-card">
+              <div
+                className="voter-nominee-card"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '14px',
+                  padding: '12px 14px',
+                  background: '#FAF9F6',
+                  border: '1px solid var(--color-border-light)',
+                  borderRadius: '12px',
+                  marginBottom: '14px',
+                  boxShadow: '0 2px 6px rgba(0, 0, 0, 0.04)',
+                }}
+              >
                 <div className="voter-nominee-avatar">
                   {nominee.photo_url ? (
                     <img src={nominee.photo_url} alt={nominee.name} className="voter-avatar-img" />
@@ -450,18 +473,22 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
                 </div>
               </div>
 
-              {/* Fixed 1 Vote Ballot Policy Card */}
-              <div style={{
-                background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.12), rgba(15, 81, 50, 0.22))',
-                border: '1.5px solid var(--color-accent)',
-                borderRadius: '12px',
-                padding: '14px 16px',
-                marginTop: '14px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: '12px',
-              }}>
+              {/* Fixed 1 Vote Ballot Policy Card (Solid background, never transparent) */}
+              <div
+                className="voter-ballot-card"
+                style={{
+                  background: '#FFFDF0',
+                  border: '2px solid var(--color-accent)',
+                  borderRadius: '12px',
+                  padding: '14px 16px',
+                  marginTop: '14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '12px',
+                  boxShadow: '0 4px 14px rgba(212, 160, 23, 0.12)',
+                }}
+              >
                 <div>
                   <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.8px', color: 'var(--color-accent)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '2px' }}>
                     <ShieldCheck size={14} /> One Student, One Vote Policy
@@ -486,14 +513,15 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
               {/* Already Voted in this Category Banner */}
               {alreadyVoted ? (
                 <div style={{
-                  background: 'rgba(234, 179, 8, 0.12)',
-                  border: '1.5px solid rgba(234, 179, 8, 0.4)',
+                  background: '#FFFBEB',
+                  border: '1.5px solid #F59E0B',
                   borderRadius: '12px',
                   padding: '16px',
                   textAlign: 'center',
                   marginTop: '16px',
+                  boxShadow: '0 2px 8px rgba(245, 158, 11, 0.1)',
                 }}>
-                  <div style={{ color: '#eab308', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontWeight: 700, fontSize: '0.98rem', marginBottom: '8px' }}>
+                  <div style={{ color: '#B45309', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontWeight: 700, fontSize: '0.98rem', marginBottom: '8px' }}>
                     <Lock size={18} /> Category Vote Already Cast
                   </div>
                   <p style={{ fontSize: '0.86rem', color: 'var(--color-text)', lineHeight: 1.5, margin: '0 0 14px' }}>
@@ -599,7 +627,7 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
 
         {/* STEP 2: Plain & Engaging Waiting View */}
         {step === 'initiating' && (
-          <div className="stk-engaging-view" style={{ padding: '24px 20px 20px' }}>
+          <div className="stk-engaging-view" style={{ padding: '24px 20px 20px', background: '#FFFFFF' }}>
             {/* Floating cheer particles */}
             <div className="stk-floating-area">
               {cheerParticles.map((particle) => (
@@ -677,7 +705,7 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
 
         {/* STEP 3: Active STK Prompt Waiting on Phone */}
         {step === 'waiting' && (
-          <div className="modal-body" style={{ textAlign: 'center', padding: '36px 20px' }}>
+          <div className="modal-body" style={{ textAlign: 'center', padding: '36px 20px', background: '#FFFFFF' }}>
             <div style={{
               width: '64px',
               height: '64px',
@@ -728,7 +756,7 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
 
         {/* STEP 4: Success Celebration */}
         {step === 'success' && (
-          <div className="modal-body" style={{ textAlign: 'center', padding: '36px 20px' }}>
+          <div className="modal-body" style={{ textAlign: 'center', padding: '36px 20px', background: '#FFFFFF' }}>
             <div style={{
               width: '72px',
               height: '72px',
@@ -794,7 +822,7 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
 
         {/* STEP 5: Failed State */}
         {step === 'failed' && (
-          <div className="modal-body" style={{ textAlign: 'center', padding: '36px 20px' }}>
+          <div className="modal-body" style={{ textAlign: 'center', padding: '36px 20px', background: '#FFFFFF' }}>
             <div style={{
               width: '64px',
               height: '64px',

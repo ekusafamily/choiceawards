@@ -1456,22 +1456,27 @@ select.form-control {
 }
 
 /* =============================================
-   Voter Card Modal (Minimal & Student-Focused)
+   Voter Card Modal (Official Ballot Dialog)
    ============================================= */
 
-.voter-card-modal {
-  max-width: 440px;
-  width: 100%;
+.modal-container.voter-modal,
+.voter-card-modal,
+.voter-modal {
+  max-width: 480px;
+  width: 95%;
   max-height: calc(100dvh - 28px);
   max-height: calc(100vh - 28px);
   border-radius: var(--radius-lg);
-  background: #FFFFFF;
+  background: #FFFFFF !important;
+  color: var(--color-text);
   border: 1.5px solid var(--color-border);
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(212, 160, 23, 0.2);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
   margin: auto 0;
+  position: relative;
+  z-index: 2010;
 }
 
 .voter-modal-header {
@@ -1483,8 +1488,18 @@ select.form-control {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #FAF9F6;
+  background: #FAF9F6 !important;
   flex-shrink: 0;
+}
+
+.voter-modal-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-secondary);
 }
 
 .voter-header-title {
@@ -1501,21 +1516,27 @@ select.form-control {
   color: var(--color-accent);
 }
 
+.voter-modal-body,
 .voter-card-body {
-  padding: 22px 20px 16px;
+  padding: 18px 18px 14px;
+  background: #FFFFFF !important;
 }
 
+/* Nominee Preview Card */
+.voter-nominee-card,
 .voter-nominee-preview {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 14px 16px;
-  background: #FAF9F6;
+  padding: 12px 14px;
+  background: #FAF9F6 !important;
   border: 1px solid var(--color-border-light);
   border-radius: var(--radius-md);
-  margin-bottom: 20px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 
+.voter-nominee-avatar,
 .voter-avatar-wrap {
   width: 52px;
   height: 52px;
@@ -1546,6 +1567,32 @@ select.form-control {
 .voter-nominee-info {
   flex: 1;
   min-width: 0;
+}
+
+/* Official Ballot Policy Card (Solid background, never transparent) */
+.voter-ballot-card {
+  background: #FFFDF0 !important;
+  border: 2px solid var(--color-accent) !important;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: 0 4px 14px rgba(212, 160, 23, 0.12);
+  position: relative;
+  overflow: hidden;
+}
+
+.voter-ballot-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--color-accent);
 }
 
 .voter-category-badge {
