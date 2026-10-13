@@ -136,7 +136,7 @@ router.get('/check-eligibility', async (req, res) => {
       return res.status(400).json({
         eligible: false,
         hasVoted: false,
-        message: 'DeKUT student email is required.',
+        message: 'Student email is required.',
       });
     }
 
@@ -199,11 +199,11 @@ router.post('/initiate', async (req, res, next) => {
 
     if (!nominee_id || !category_id || !phone || !email) {
       return res.status(400).json({
-        error: { message: 'Nominee, category, DeKUT student email, and M-Pesa phone number are required.' },
+        error: { message: 'Nominee, category, student email, and M-Pesa phone number are required.' },
       });
     }
 
-    // 1. Strictly validate DeKUT student email format: xxxxxxx.xxxxxxRR@students.ac.ke (RR in 20-26)
+    // 1. Strictly validate DeKUT student email format: xxxx.xxxRR@students.dkut.ac.ke (RR in 20-26)
     const emailValidation = voterTracker.validateStudentEmail(email);
     if (!emailValidation.valid) {
       return res.status(400).json({

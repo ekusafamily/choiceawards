@@ -71,18 +71,18 @@ function getCheerMessage(count, nomineeFirstName) {
 
 /**
  * Validate DeKUT Student Institutional Email format:
- * xxxxxxx.xxxxxxRR@students.ac.ke where RR is admission year (20 to 26)
+ * Format: xxxx.xxxRR@students.dkut.ac.ke where RR is admission year (20 to 26)
  */
 function validateStudentEmail(em) {
-  if (!em) return 'Please enter your DeKUT student email.';
+  if (!em) return 'Please enter your student email.';
   const cleaned = em.trim().toLowerCase();
-  if (!cleaned.endsWith('@students.ac.ke') && !cleaned.endsWith('@students.dekut.ac.ke')) {
-    return 'Domain must be @students.ac.ke (e.g. name.admission22@students.ac.ke).';
+  if (!cleaned.endsWith('@students.dkut.ac.ke') && !cleaned.endsWith('@students.dekut.ac.ke')) {
+    return 'Please enter a valid student email address.';
   }
   const username = cleaned.split('@')[0];
-  const regex = /^[a-z0-9]+(?:\.[a-z0-9]+)*\.?(2[0-6])$/i;
+  const regex = /^[a-z0-9]+(?:\.[a-z0-9]+)+(2[0-6])$/i;
   if (!regex.test(username)) {
-    return 'Format must be firstname.lastnameRR@students.ac.ke with admission year between 20 and 26 (e.g. 21, 22, 23).';
+    return 'Please enter a valid student email address.';
   }
   return null;
 }
@@ -545,7 +545,7 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
                   <div className="form-group" style={{ marginTop: '16px', marginBottom: '14px' }}>
                     <label htmlFor="voter_email" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.86rem', fontWeight: 600 }}>
                       <Mail size={16} style={{ color: 'var(--color-accent)' }} />
-                      DeKUT Student Email
+                      Student Email
                       {checkingEligibility && (
                         <Loader2 size={12} className="spin-icon" style={{ marginLeft: 'auto', color: 'var(--color-accent)' }} />
                       )}
@@ -559,7 +559,7 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
                       type="email"
                       id="voter_email"
                       className={`form-control ${emailFormatError ? 'is-invalid' : ''}`}
-                      placeholder="e.g. john.doe22@students.ac.ke"
+                      placeholder="Enter your student email"
                       value={email}
                       onChange={(e) => {
                         setEmail(e.target.value);
@@ -570,9 +570,15 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
                       required
                       style={{ fontSize: '0.88rem' }}
                     />
-                    <span style={{ fontSize: '0.74rem', color: emailFormatError ? '#ef4444' : 'var(--color-text-muted)', marginTop: '4px', display: 'block' }}>
-                      {emailFormatError || 'Format: firstname.lastnameRR@students.ac.ke (Admission year RR: 20–26)'}
-                    </span>
+                    {emailFormatError ? (
+                      <span style={{ fontSize: '0.74rem', color: '#ef4444', marginTop: '4px', display: 'block' }}>
+                        {emailFormatError}
+                      </span>
+                    ) : (
+                      <span style={{ fontSize: '0.74rem', color: 'var(--color-text-muted)', marginTop: '4px', display: 'block' }}>
+                        Official DeKUT student email is required to vote.
+                      </span>
+                    )}
                   </div>
 
                   {/* M-Pesa Phone Number Input */}

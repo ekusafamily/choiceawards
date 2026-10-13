@@ -11,35 +11,33 @@ const VOTER_CATEGORIES = new Map();
 
 /**
  * Validate DeKUT Student Institutional Email format:
- * Format: xxxxxxx.xxxxxxRR@students.ac.ke where RR is admission year (20 to 26)
- * Examples: john.doe22@students.ac.ke, abigael.uhuru24@students.ac.ke, grace.wanjiku20@students.ac.ke
+ * Format: xxxx.xxxRR@students.dkut.ac.ke where RR is admission year (20 to 26)
  */
 function validateStudentEmail(email) {
   if (!email || typeof email !== 'string') {
-    return { valid: false, message: 'DeKUT student email is required.' };
+    return { valid: false, message: 'Please enter a valid student email address.' };
   }
 
   const cleaned = email.trim().toLowerCase();
 
-  // Domain check: must be @students.ac.ke or @students.dekut.ac.ke
-  const validDomain = cleaned.endsWith('@students.ac.ke') || cleaned.endsWith('@students.dekut.ac.ke');
+  // Domain check: strictly official DeKUT student domain (@students.dkut.ac.ke)
+  const validDomain = cleaned.endsWith('@students.dkut.ac.ke') || cleaned.endsWith('@students.dekut.ac.ke');
   if (!validDomain) {
     return {
       valid: false,
-      message: 'Email must be your official student email ending in @students.ac.ke',
+      message: 'Please enter a valid student email address.',
     };
   }
 
   const username = cleaned.split('@')[0];
 
-  // Regex matching username ending with admission year 20 through 26 (e.g. 20, 21, 22, 23, 24, 25, 26)
-  // Allows formats like firstname.lastname22, first.middle.last23, or firstname24
-  const regex = /^[a-z0-9]+(?:\.[a-z0-9]+)*\.?(2[0-6])$/i;
+  // Format: xxxx.xxxRR (alphanumeric parts separated by dot, ending with admission year 20 to 26)
+  const regex = /^[a-z0-9]+(?:\.[a-z0-9]+)+(2[0-6])$/i;
 
   if (!regex.test(username)) {
     return {
       valid: false,
-      message: 'Email must end with your admission year between 20 and 26 (e.g. firstname.lastname22@students.ac.ke).',
+      message: 'Please enter a valid student email address.',
     };
   }
 
