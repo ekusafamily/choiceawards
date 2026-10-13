@@ -1,1 +1,11 @@
-[]
+[
+  {
+    "email": "brian.ireri24@students.dkut.ac.ke",
+    "category_id": "9eca1d1f-6429-49da-a74e-2a8f864b035b",
+    "nominee_id": "58cd4b22-c564-4339-b244-9b1a7de824b2",
+    "amount": 10,
+    "points": 10,
+    "transaction_id": "UJD6MAR54B",
+    "timestamp": "2026-10-13T17:55:01.914Z"
+  }
+]

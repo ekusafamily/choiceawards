@@ -179,7 +179,8 @@ export default function Navbar() {
               Nominees
             </NavLink>
           </li>
-          <li>
+          {/* Results tab hidden - will come later */}
+          {/* <li>
             <NavLink
               to="/results"
               onClick={() => {
@@ -190,7 +191,7 @@ export default function Navbar() {
             >
               Results
             </NavLink>
-          </li>
+          </li> */}
           <li>
             <NavLink
               to="/successful-nominations"
