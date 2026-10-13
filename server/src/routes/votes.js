@@ -106,9 +106,9 @@ router.post('/initiate', async (req, res, next) => {
     }
 
     const numericAmount = Math.round(Number(amount));
-    if (isNaN(numericAmount) || numericAmount < 10) {
+    if (isNaN(numericAmount) || numericAmount < 1) {
       return res.status(400).json({
-        error: { message: 'Minimum voting amount is KSh 10 (10 votes).' },
+        error: { message: 'Minimum voting amount is KSh 1 (1 vote).' },
       });
     }
     const points = calculatePoints(numericAmount);
@@ -320,9 +320,9 @@ router.post('/', async (req, res, next) => {
       });
     }
 
-    if (amount < 10) {
+    if (amount < 1) {
       return res.status(400).json({
-        error: { message: 'Minimum voting amount is KSh 10 (10 votes)' },
+        error: { message: 'Minimum voting amount is KSh 1 (1 vote)' },
       });
     }
 

@@ -6,10 +6,10 @@ import {
 import apiClient from '../api/client';
 
 const VOTE_OPTIONS = [
+  { votes: 1, amount: 1, points: 1, label: '1 Vote' },
+  { votes: 5, amount: 5, points: 5, label: '5 Votes' },
   { votes: 10, amount: 10, points: 10, label: '10 Votes' },
   { votes: 20, amount: 20, points: 20, label: '20 Votes' },
-  { votes: 50, amount: 50, points: 50, label: '50 Votes' },
-  // { votes: 100, amount: 100, points: 110, label: '100 Votes (+10% Bonus)' },
 ];
 
 const COMRADE_TRIVIA = [
@@ -74,7 +74,7 @@ function getCheerMessage(count, nomineeFirstName) {
 
 export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
   // Selection state
-  const [selectedVotes, setSelectedVotes] = useState(10);
+  const [selectedVotes, setSelectedVotes] = useState(1);
   const [customVotes, setCustomVotes] = useState('');
   const [isCustom, setIsCustom] = useState(false);
   const [phone, setPhone] = useState(() => localStorage.getItem('cca_voter_phone') || '');
@@ -136,9 +136,9 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
     return () => clearInterval(interval);
   }, [step]);
 
-  // Compute final votes and amount (1 vote = 1 KES, minimum 10 KES)
+  // Compute final votes and amount (1 vote = 1 KES, minimum 1 KES)
   const currentVotes = isCustom
-    ? Math.max(10, parseInt(customVotes, 10) || 10)
+    ? Math.max(1, parseInt(customVotes, 10) || 1)
     : selectedVotes;
   const currentAmount = currentVotes; // 1 bob per vote
   const nomineeFirstName = nominee?.name?.split(' ')[0] || 'Nominee';
@@ -160,8 +160,8 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
     setCustomVotes(val);
     if (val) {
       setIsCustom(true);
-      if (parseInt(val, 10) < 10) {
-        setError('Minimum voting amount is KSh 10 (10 votes).');
+      if (parseInt(val, 10) < 1) {
+        setError('Minimum voting amount is KSh 1 (1 vote).');
       } else {
         setError('');
       }
@@ -213,13 +213,13 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
       return;
     }
 
-    if (isCustom && customVotes && parseInt(customVotes, 10) < 10) {
-      setError('Minimum voting amount is KSh 10 (10 votes).');
+    if (isCustom && customVotes && parseInt(customVotes, 10) < 1) {
+      setError('Minimum voting amount is KSh 1 (1 vote).');
       return;
     }
 
-    if (currentAmount < 10) {
-      setError('Minimum voting amount is KSh 10 (10 votes).');
+    if (currentAmount < 1) {
+      setError('Minimum voting amount is KSh 1 (1 vote).');
       return;
     }
 
@@ -424,9 +424,9 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
                 <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <input
                     type="number"
-                    min="10"
+                    min="1"
                     max="10000"
-                    placeholder="Or enter custom votes (min 10)..."
+                    placeholder="Or enter custom votes (min 1)..."
                     value={customVotes}
                     onChange={handleCustomChange}
                     className="form-control"
