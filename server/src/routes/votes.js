@@ -1,8 +1,13 @@
 const express = require('express');
 const supabase = require('../config/supabase');
 const paynexus = require('../services/paynexus');
+const payhero = require('../services/payhero');
 
 const router = express.Router();
+
+function getGateway() {
+  return (process.env.PAYMENT_GATEWAY || 'payhero').toLowerCase();
+}
 
 // In-memory tracker for ongoing transactions
 const PENDING_VOTES = new Map();
@@ -32,8 +37,8 @@ async function fulfillVote(reference, statusResult) {
   }
 
   const { nominee_id, category_id, amount, points, phone } = pending;
-  const transactionId = statusResult?.refNo || statusResult?.data?.provider_transaction_id || reference;
-  const voterPhone = phone || statusResult?.data?.phone || null;
+  const transactionId = statusResult?.refNo || statusResult?.data?.provider_transaction_id || statusResult?.data?.MpesaReceiptNumber || reference;
+  const voterPhone = phone || statusResult?.data?.phone || statusResult?.data?.Phone || null;
 
   try {
     if (!supabase) {
@@ -89,7 +94,7 @@ async function fulfillVote(reference, statusResult) {
   }
 }
 
-// POST /api/votes/initiate - Initiate an M-Pesa STK Push via PayNexus
+// POST /api/votes/initiate - Initiate an M-Pesa STK Push via PayHero (or PayNexus fallback)
 router.post('/initiate', async (req, res, next) => {
   try {
     const { nominee_id, category_id, amount, phone, votes_count, nominee_name } = req.body;
@@ -109,27 +114,57 @@ router.post('/initiate', async (req, res, next) => {
     const points = calculatePoints(numericAmount);
     const description = nominee_name ? `Vote for ${nominee_name.slice(0, 15)}` : 'DeKUTSO CCA';
 
-    // Call PayNexus STK Push API
-    const initResult = await paynexus.initiatePayment({
-      amount: numericAmount,
-      phone,
-      description,
-    });
+    const gateway = getGateway();
+    let initResult;
 
-    // Save pending vote metadata
-    PENDING_VOTES.set(initResult.reference, {
+    if (gateway === 'payhero') {
+      const externalRef = `CCA-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+      try {
+        initResult = await payhero.initiatePayment({
+          amount: numericAmount,
+          phone,
+          reference: externalRef,
+          customerName: description,
+        });
+      } catch (heroErr) {
+        // Fallback to PayNexus if configured and PayHero encounters error
+        if (process.env.PAYNEXUS_SECRET_KEY && !process.env.PAYHERO_CHANNEL_ID) {
+          console.warn('PayHero initiation failed, falling back to PayNexus:', heroErr.message);
+          initResult = await paynexus.initiatePayment({
+            amount: numericAmount,
+            phone,
+            description,
+          });
+        } else {
+          throw heroErr;
+        }
+      }
+    } else {
+      initResult = await paynexus.initiatePayment({
+        amount: numericAmount,
+        phone,
+        description,
+      });
+    }
+
+    const voteMeta = {
       nominee_id,
       category_id,
       amount: numericAmount,
       points,
       phone: initResult.phone || phone,
       votes_count: votes_count || 1,
+      gateway,
       created_at: Date.now(),
-    });
+    };
+
+    // Save pending vote metadata by reference and external reference
+    if (initResult.reference) PENDING_VOTES.set(initResult.reference, voteMeta);
+    if (initResult.externalReference) PENDING_VOTES.set(initResult.externalReference, voteMeta);
 
     return res.json({
       success: true,
-      reference: initResult.reference,
+      reference: initResult.reference || initResult.externalReference,
       checkout_request_id: initResult.checkoutRequestId,
       amount: numericAmount,
       points,
@@ -138,7 +173,7 @@ router.post('/initiate', async (req, res, next) => {
       message: 'M-Pesa STK push prompted. Please enter your PIN on your phone.',
     });
   } catch (err) {
-    console.error('Failed to initiate PayNexus STK push:', err.message);
+    console.error('Failed to initiate M-Pesa STK push:', err.message);
     return res.status(400).json({
       success: false,
       error: { message: err.message || 'Failed to initiate M-Pesa payment.' },
@@ -172,13 +207,18 @@ router.get('/status/:reference', async (req, res, next) => {
       return res.json(cached.data);
     }
 
-    // Check with PayNexus API
+    const pending = PENDING_VOTES.get(reference);
+    const gateway = pending?.gateway || getGateway();
+
     let statusResult;
     try {
-      statusResult = await paynexus.checkPaymentStatus(reference);
+      if (gateway === 'payhero') {
+        statusResult = await payhero.checkPaymentStatus(reference);
+      } else {
+        statusResult = await paynexus.checkPaymentStatus(reference);
+      }
     } catch (checkErr) {
-      // Payment might still be propagating or transient network delay
-      console.warn(`PayNexus status check pending for ${reference}:`, checkErr.message);
+      console.warn(`Payment status check pending for ${reference}:`, checkErr.message);
       const pendingData = {
         success: true,
         status: 'processing',
@@ -191,7 +231,7 @@ router.get('/status/:reference', async (req, res, next) => {
 
     const currentStatus = statusResult.status;
 
-    if (currentStatus === 'completed') {
+    if (currentStatus === 'completed' || statusResult.isComplete) {
       const fulfilled = await fulfillVote(reference, statusResult);
       const successData = {
         success: true,
@@ -233,20 +273,39 @@ router.get('/status/:reference', async (req, res, next) => {
   }
 });
 
-// POST /api/votes/webhook - PayNexus IPN webhook listener
+// POST /api/votes/webhook - PayHero & PayNexus IPN webhook listener
 router.post('/webhook', async (req, res) => {
   try {
-    const payload = req.body?.data || req.body || {};
+    const body = req.body || {};
+    console.log('Payment webhook received:', JSON.stringify(body));
+
+    // Handle PayHero callback schema: { response: { ExternalReference, Status, ResultCode, MpesaReceiptNumber, Phone, ... } }
+    if (body.response) {
+      const resp = body.response;
+      const ref = resp.ExternalReference || resp.CheckoutRequestID;
+      const isSuccess = (resp.Status || '').toLowerCase() === 'success' || resp.ResultCode === 0;
+
+      if (ref && isSuccess) {
+        await fulfillVote(ref, {
+          refNo: resp.MpesaReceiptNumber,
+          data: resp,
+        });
+      }
+      return res.status(200).json({ status: true, message: 'Callback processed' });
+    }
+
+    // Handle PayNexus callback schema: { data: { reference, status, provider_transaction_id, ... } }
+    const payload = body.data || body;
     const { reference, status } = payload;
 
     if (reference && status === 'completed') {
       await fulfillVote(reference, { data: payload });
     }
 
-    res.status(200).json({ received: true });
+    return res.status(200).json({ received: true });
   } catch (err) {
     console.error('Webhook error:', err);
-    res.status(200).json({ received: true });
+    return res.status(200).json({ received: true });
   }
 });
 

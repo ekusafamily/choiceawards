@@ -1,3 +1,4 @@
+// PayHero & Supabase backend service v3
 require('dotenv').config();
 const path = require('path');
 const fs = require('fs');
