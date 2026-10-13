@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS nominations (
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
--- Votes table
+-- Votes table (1 vote per student per category enforced by voter_email + category_id)
 CREATE TABLE IF NOT EXISTS votes (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   nominee_id UUID REFERENCES nominees(id) ON DELETE CASCADE,
@@ -51,14 +51,16 @@ CREATE TABLE IF NOT EXISTS votes (
   points INT NOT NULL,
   transaction_id TEXT,
   voter_phone TEXT,
+  voter_email TEXT,
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
--- Indexes for performance
+-- Indexes & Unique Constraints for performance and fairness
 CREATE INDEX IF NOT EXISTS idx_nominees_category ON nominees(category_id);
 CREATE INDEX IF NOT EXISTS idx_nominees_status ON nominees(status);
 CREATE INDEX IF NOT EXISTS idx_votes_nominee ON votes(nominee_id);
 CREATE INDEX IF NOT EXISTS idx_votes_category ON votes(category_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_votes_voter_category ON votes (voter_email, category_id) WHERE voter_email IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_nominations_status ON nominations(status);
 
 -- Seed categories

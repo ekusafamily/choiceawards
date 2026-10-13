@@ -2,6 +2,7 @@ const express = require('express');
 const supabase = require('../config/supabase');
 const paynexus = require('../services/paynexus');
 const payhero = require('../services/payhero');
+const voterTracker = require('../services/voterTracker');
 
 const router = express.Router();
 
@@ -15,10 +16,7 @@ const FULFILLED_VOTES = new Set();
 const STATUS_CACHE = new Map(); // reference -> { timestamp, data }
 
 function calculatePoints(amount) {
-  if (amount >= 100) {
-    return Math.floor(amount * 1.1);
-  }
-  return amount;
+  return amount; // 1 bob = 1 point, fixed 10 KSh = 10 pts per category vote
 }
 
 /**
@@ -36,45 +34,61 @@ async function fulfillVote(reference, statusResult) {
     return null;
   }
 
-  const { nominee_id, category_id, amount, points, phone } = pending;
+  const { nominee_id, category_id, amount = 10, points = 10, phone, email } = pending;
   const transactionId = statusResult?.refNo || statusResult?.data?.provider_transaction_id || statusResult?.data?.MpesaReceiptNumber || reference;
   const voterPhone = phone || statusResult?.data?.phone || statusResult?.data?.Phone || null;
+  const voterEmail = email || null;
 
   try {
+    // 1. Record in persistent voter tracker to prevent duplicate category voting
+    if (voterEmail) {
+      await voterTracker.recordCategoryVote({
+        email: voterEmail,
+        category_id,
+        nominee_id,
+        amount,
+        points,
+        transaction_id: transactionId,
+      });
+    }
+
     if (!supabase) {
       console.error('Supabase client not initialized, cannot record vote');
       return { points, transactionId };
     }
 
-    // 1. Insert vote row into Supabase
+    // 2. Insert vote row into Supabase (try with voter_email, fallback if column absent)
+    let insertPayload = {
+      nominee_id,
+      category_id,
+      amount,
+      points,
+      transaction_id: transactionId,
+      voter_phone: voterPhone,
+    };
+    if (voterEmail) {
+      insertPayload.voter_email = voterEmail;
+    }
+
     let { data: vote, error: voteError } = await supabase
       .from('votes')
-      .insert({
-        nominee_id,
-        category_id,
-        amount,
-        points,
-        transaction_id: transactionId,
-        voter_phone: voterPhone,
-      })
+      .insert(insertPayload)
       .select()
       .single();
 
-    // If DB has legacy CHECK (amount >= 10) constraint from initial schema
+    // If voter_email column doesn't exist yet in Supabase schema (error 42703)
+    if (voteError && voteError.code === '42703') {
+      delete insertPayload.voter_email;
+      const retry = await supabase.from('votes').insert(insertPayload).select().single();
+      voteError = retry.error;
+      vote = retry.data;
+    }
+
+    // If DB has legacy CHECK (amount >= 10) constraint
     if (voteError && voteError.code === '23514') {
       console.warn('votes_amount_check constraint triggered, recording with compliant fallback amount...');
-      const fallbackResult = await supabase
-        .from('votes')
-        .insert({
-          nominee_id,
-          category_id,
-          amount: Math.max(10, amount),
-          points,
-          transaction_id: transactionId,
-          voter_phone: voterPhone,
-        })
-        .select()
-        .single();
+      insertPayload.amount = Math.max(10, amount);
+      const fallbackResult = await supabase.from('votes').insert(insertPayload).select().single();
       voteError = fallbackResult.error;
       vote = fallbackResult.data;
     }
@@ -83,7 +97,7 @@ async function fulfillVote(reference, statusResult) {
       console.error('Supabase vote insert error:', voteError.message);
     }
 
-    // 2. Increment points on nominee
+    // 3. Increment points on nominee
     const { error: rpcError } = await supabase.rpc('increment_nominee_points', {
       p_nominee_id: nominee_id,
       p_points: points,
@@ -105,7 +119,7 @@ async function fulfillVote(reference, statusResult) {
     }
 
     FULFILLED_VOTES.add(reference);
-    console.log(`✅ Vote fulfilled successfully: ${points} points credited to nominee ${nominee_id} (Ref: ${transactionId})`);
+    console.log(`✅ Vote fulfilled successfully: ${points} points credited to nominee ${nominee_id} (Voter: ${voterEmail || voterPhone}, Ref: ${transactionId})`);
     return { points, transactionId };
   } catch (err) {
     console.error('Error fulfilling vote:', err);
@@ -113,24 +127,105 @@ async function fulfillVote(reference, statusResult) {
   }
 }
 
-// POST /api/votes/initiate - Initiate an M-Pesa STK Push via PayHero (or PayNexus fallback)
+// GET /api/votes/check-eligibility - Verify DeKUT student email and ensure 1 vote per category
+router.get('/check-eligibility', async (req, res) => {
+  try {
+    const { email, category_id } = req.query;
+
+    if (!email) {
+      return res.status(400).json({
+        eligible: false,
+        hasVoted: false,
+        message: 'DeKUT student email is required.',
+      });
+    }
+
+    const validation = voterTracker.validateStudentEmail(email);
+    if (!validation.valid) {
+      return res.status(400).json({
+        eligible: false,
+        hasVoted: false,
+        message: validation.message,
+      });
+    }
+
+    if (!category_id) {
+      return res.json({
+        eligible: true,
+        hasVoted: false,
+        email: validation.email,
+        message: 'Email is valid.',
+      });
+    }
+
+    const hasVoted = await voterTracker.hasVotedInCategory(validation.email, category_id);
+    if (hasVoted) {
+      return res.json({
+        eligible: false,
+        hasVoted: true,
+        email: validation.email,
+        category_id,
+        message: 'You have already voted in this category! Each student can only vote once per category, but you can vote in other categories.',
+      });
+    }
+
+    return res.json({
+      eligible: true,
+      hasVoted: false,
+      email: validation.email,
+      category_id,
+      message: 'Eligible to vote in this category.',
+    });
+  } catch (err) {
+    console.error('Error checking vote eligibility:', err.message);
+    return res.status(500).json({ eligible: false, message: 'Server error checking eligibility.' });
+  }
+});
+
+// GET /api/votes/voted-categories - Retrieve all category IDs a student has voted in
+router.get('/voted-categories', (req, res) => {
+  const { email } = req.query;
+  if (!email) return res.json({ votedCategories: [] });
+  const validation = voterTracker.validateStudentEmail(email);
+  if (!validation.valid) return res.json({ votedCategories: [] });
+  const votedCategories = voterTracker.getVotedCategoriesForEmail(validation.email);
+  return res.json({ email: validation.email, votedCategories });
+});
+
+// POST /api/votes/initiate - Initiate an M-Pesa STK Push for 10 KES (1 vote per category per student)
 router.post('/initiate', async (req, res, next) => {
   try {
-    const { nominee_id, category_id, amount, phone, votes_count, nominee_name } = req.body;
+    const { nominee_id, category_id, email, phone, nominee_name } = req.body;
 
-    if (!nominee_id || !amount || !phone) {
+    if (!nominee_id || !category_id || !phone || !email) {
       return res.status(400).json({
-        error: { message: 'Nominee, voting amount, and M-Pesa phone number are required.' },
+        error: { message: 'Nominee, category, DeKUT student email, and M-Pesa phone number are required.' },
       });
     }
 
-    const numericAmount = Math.round(Number(amount));
-    if (isNaN(numericAmount) || numericAmount < 1) {
+    // 1. Strictly validate DeKUT student email format: xxxxxxx.xxxxxxRR@students.ac.ke (RR in 20-26)
+    const emailValidation = voterTracker.validateStudentEmail(email);
+    if (!emailValidation.valid) {
       return res.status(400).json({
-        error: { message: 'Minimum voting amount is KSh 1 (1 vote).' },
+        error: { message: emailValidation.message },
       });
     }
-    const points = calculatePoints(numericAmount);
+
+    const studentEmail = emailValidation.email;
+
+    // 2. Prevent multiple votes per category
+    const alreadyVoted = await voterTracker.hasVotedInCategory(studentEmail, category_id);
+    if (alreadyVoted) {
+      return res.status(400).json({
+        error: {
+          message: 'You have already cast your vote in this category! Each student is allowed 1 vote per category. You can vote in other categories.',
+        },
+      });
+    }
+
+    // 3. Fixed fair-play fee: 10 KES (10 points) per category vote
+    const numericAmount = 10;
+    const points = 10;
     const description = nominee_name ? `Vote for ${nominee_name.slice(0, 15)}` : 'DeKUTSO CCA';
 
     const gateway = getGateway();
@@ -169,10 +264,11 @@ router.post('/initiate', async (req, res, next) => {
     const voteMeta = {
       nominee_id,
       category_id,
+      email: studentEmail,
       amount: numericAmount,
       points,
       phone: initResult.phone || phone,
-      votes_count: votes_count || 1,
+      votes_count: 1,
       gateway,
       created_at: Date.now(),
     };
@@ -188,8 +284,9 @@ router.post('/initiate', async (req, res, next) => {
       amount: numericAmount,
       points,
       phone: initResult.phone || phone,
+      email: studentEmail,
       status: 'initiated',
-      message: 'M-Pesa STK push prompted. Please enter your PIN on your phone.',
+      message: 'M-Pesa STK push prompted for KSh 10. Please enter your PIN on your phone.',
     });
   } catch (err) {
     console.error('Failed to initiate M-Pesa STK push:', err.message);

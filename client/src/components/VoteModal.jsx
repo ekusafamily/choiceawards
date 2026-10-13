@@ -1,22 +1,19 @@
 import { useState, useEffect, useRef } from 'react';
 import {
   X, Trophy, User, CheckCircle2, Smartphone, Loader2,
-  AlertCircle, RefreshCw, ShieldCheck, Sparkles, Flame
+  AlertCircle, RefreshCw, ShieldCheck, Sparkles, Flame,
+  Mail, Lock
 } from 'lucide-react';
 import apiClient from '../api/client';
 
-const VOTE_OPTIONS = [
-  { votes: 1, amount: 1, points: 1, label: '1 Vote' },
-  { votes: 5, amount: 5, points: 5, label: '5 Votes' },
-  { votes: 10, amount: 10, points: 10, label: '10 Votes' },
-  { votes: 20, amount: 20, points: 20, label: '20 Votes' },
-];
+const BALLOT_AMOUNT = 10; // Fixed KSh 10 per category
+const BALLOT_POINTS = 10; // Fixed 10 points per vote
 
 const COMRADE_TRIVIA = [
   {
     icon: '🏆',
-    title: 'Every Vote Counts!',
-    text: 'Top categories in the Comrade Choice Awards are closely contested. Your vote makes a big impact!',
+    title: 'One Student, One Vote',
+    text: 'Every student gets 1 vote per category. This guarantees fair representation for every nominee.',
   },
   {
     icon: '☕',
@@ -72,12 +69,34 @@ function getCheerMessage(count, nomineeFirstName) {
   return `🌟 ${count} cheers! Legendary Comrade Backer!`;
 }
 
+/**
+ * Validate DeKUT Student Institutional Email format:
+ * xxxxxxx.xxxxxxRR@students.ac.ke where RR is admission year (20 to 26)
+ */
+function validateStudentEmail(em) {
+  if (!em) return 'Please enter your DeKUT student email.';
+  const cleaned = em.trim().toLowerCase();
+  if (!cleaned.endsWith('@students.ac.ke') && !cleaned.endsWith('@students.dekut.ac.ke')) {
+    return 'Domain must be @students.ac.ke (e.g. name.admission22@students.ac.ke).';
+  }
+  const username = cleaned.split('@')[0];
+  const regex = /^[a-z0-9]+(?:\.[a-z0-9]+)*\.?(2[0-6])$/i;
+  if (!regex.test(username)) {
+    return 'Format must be firstname.lastnameRR@students.ac.ke with admission year between 20 and 26 (e.g. 21, 22, 23).';
+  }
+  return null;
+}
+
 export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
-  // Selection state
-  const [selectedVotes, setSelectedVotes] = useState(1);
-  const [customVotes, setCustomVotes] = useState('');
-  const [isCustom, setIsCustom] = useState(false);
+  // Voter credentials state
+  const [email, setEmail] = useState(() => localStorage.getItem('cca_voter_email') || '');
   const [phone, setPhone] = useState(() => localStorage.getItem('cca_voter_phone') || '');
+  const [emailTouched, setEmailTouched] = useState(false);
+
+  // Duplicate category vote enforcement
+  const [checkingEligibility, setCheckingEligibility] = useState(false);
+  const [alreadyVoted, setAlreadyVoted] = useState(false);
+  const [alreadyVotedMessage, setAlreadyVotedMessage] = useState('');
 
   // Payment state machine: 'select' | 'initiating' | 'waiting' | 'success' | 'failed'
   const [step, setStep] = useState('select');
@@ -116,6 +135,54 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
     };
   }, []);
 
+  // Check eligibility whenever email changes (debounced)
+  useEffect(() => {
+    if (!email || !nominee?.category_id) {
+      setAlreadyVoted(false);
+      setAlreadyVotedMessage('');
+      return;
+    }
+
+    const emailErr = validateStudentEmail(email);
+    if (emailErr) {
+      setAlreadyVoted(false);
+      setAlreadyVotedMessage('');
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        setCheckingEligibility(true);
+        const res = await apiClient.get('/votes/check-eligibility', {
+          params: {
+            email: email.trim().toLowerCase(),
+            category_id: nominee.category_id,
+          },
+        });
+
+        if (res.data?.hasVoted) {
+          setAlreadyVoted(true);
+          setAlreadyVotedMessage(
+            res.data.message || 'You have already voted in this category!'
+          );
+        } else {
+          setAlreadyVoted(false);
+          setAlreadyVotedMessage('');
+        }
+      } catch (err) {
+        // If server returns 400 with hasVoted flag
+        if (err.response?.data?.hasVoted) {
+          setAlreadyVoted(true);
+          setAlreadyVotedMessage(err.response.data.message);
+        }
+      } finally {
+        setCheckingEligibility(false);
+      }
+    }, 350);
+
+    return () => clearTimeout(timer);
+  }, [email, nominee?.category_id]);
+
   // Timer & trivia cycle for creative STK push initiating state
   useEffect(() => {
     if (step !== 'initiating') {
@@ -136,37 +203,14 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
     return () => clearInterval(interval);
   }, [step]);
 
-  // Compute final votes and amount (1 vote = 1 KES, minimum 1 KES)
-  const currentVotes = isCustom
-    ? Math.max(1, parseInt(customVotes, 10) || 1)
-    : selectedVotes;
-  const currentAmount = currentVotes; // 1 bob per vote
   const nomineeFirstName = nominee?.name?.split(' ')[0] || 'Nominee';
+  const categoryName = nominee.categories?.name || nominee.category_name || 'this category';
 
   const currentStage = getInitiationStage(
     elapsedSecs,
     nominee?.name || 'Nominee'
   );
   const currentTrivia = COMRADE_TRIVIA[triviaIdx % COMRADE_TRIVIA.length];
-
-  function handleSelectOption(optVotes) {
-    setIsCustom(false);
-    setSelectedVotes(optVotes);
-    setError('');
-  }
-
-  function handleCustomChange(e) {
-    const val = e.target.value.replace(/\D/g, '');
-    setCustomVotes(val);
-    if (val) {
-      setIsCustom(true);
-      if (parseInt(val, 10) < 1) {
-        setError('Minimum voting amount is KSh 1 (1 vote).');
-      } else {
-        setError('');
-      }
-    }
-  }
 
   // Interactive cheer reactions
   function handleCheer() {
@@ -207,23 +251,25 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
     e.preventDefault();
     setError('');
 
+    const emailError = validateStudentEmail(email);
+    if (emailError) {
+      setError(emailError);
+      return;
+    }
+
     const phoneError = validatePhone(phone);
     if (phoneError) {
       setError(phoneError);
       return;
     }
 
-    if (isCustom && customVotes && parseInt(customVotes, 10) < 1) {
-      setError('Minimum voting amount is KSh 1 (1 vote).');
+    if (alreadyVoted) {
+      setError('You have already voted in this category! Each student can only vote once per category.');
       return;
     }
 
-    if (currentAmount < 1) {
-      setError('Minimum voting amount is KSh 1 (1 vote).');
-      return;
-    }
-
-    // Save phone for future convenience
+    // Save credentials for voter convenience across categories
+    localStorage.setItem('cca_voter_email', email.trim().toLowerCase());
     localStorage.setItem('cca_voter_phone', phone.trim());
 
     setElapsedSecs(0);
@@ -238,9 +284,10 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
         {
           nominee_id: nominee.id,
           category_id: nominee.category_id,
-          amount: currentAmount,
+          email: email.trim().toLowerCase(),
           phone: phone.trim(),
-          votes_count: currentVotes,
+          amount: BALLOT_AMOUNT,
+          votes_count: 1,
           nominee_name: nominee.name,
         },
         {
@@ -289,14 +336,14 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
 
         if (status === 'completed' || isComplete) {
           stopPolling();
-          setCompletedData({ points: points || currentVotes, refNo });
+          setCompletedData({ points: points || BALLOT_POINTS, refNo });
           setStep('success');
 
           // Notify parent component to update leaderboard points immediately
           const resultPayload = {
             nominee_id: nominee.id,
             category_id: nominee.category_id,
-            points: points || currentVotes,
+            points: points || BALLOT_POINTS,
             refNo,
           };
           if (onSuccess) onSuccess(resultPayload);
@@ -323,7 +370,6 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
         return;
       }
 
-      // Schedule next check only after current check has completely resolved
       if (isPollingRef.current && isMountedRef.current) {
         pollTimerRef.current = setTimeout(pollStep, 3000);
       }
@@ -347,35 +393,39 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
     onClose();
   }
 
+  const emailFormatError = emailTouched ? validateStudentEmail(email) : null;
+  const isEmailValid = email && !validateStudentEmail(email);
+
   return (
-    <div
-      className="modal-overlay"
-      onClick={step === 'waiting' ? undefined : handleCloseModal}
-      role="dialog"
-      aria-modal="true"
-      aria-label="Vote modal"
-    >
-      <div className="modal voter-card-modal" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-overlay animate-fade-in" onClick={handleCloseModal}>
+      <div
+        className="modal-container voter-modal"
+        onClick={(e) => e.stopPropagation()}
+        style={{ maxWidth: '500px', width: '94%' }}
+      >
         {/* Modal Header */}
-        <div className="voter-modal-header">
-          <div className="voter-header-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <img src="/dekutso-logo.png" alt="DeKUTSO" style={{ height: '22px', width: 'auto', objectFit: 'contain' }} />
-            <span>Cast Your Vote</span>
+        <div className="modal-header voter-modal-header">
+          <div className="voter-modal-badge">
+            <Trophy size={14} className="text-gold" />
+            <span>OFFICIAL BALLOT</span>
           </div>
-          {step !== 'waiting' && (
-            <button className="modal-close" onClick={handleCloseModal} aria-label="Close">
-              <X size={20} />
-            </button>
-          )}
+          <button
+            type="button"
+            className="modal-close-btn"
+            onClick={handleCloseModal}
+            aria-label="Close modal"
+          >
+            <X size={18} />
+          </button>
         </div>
 
-        {/* STEP 1: Select Votes & Enter Phone */}
+        {/* STEP 1: Ballot Selection & Email Verification */}
         {step === 'select' && (
           <form onSubmit={handleInitiate}>
-            <div className="modal-body voter-card-body">
-              {/* Nominee Identity Card */}
-              <div className="voter-nominee-preview">
-                <div className="voter-avatar-wrap">
+            <div className="modal-body voter-modal-body">
+              {/* Nominee Profile Snapshot */}
+              <div className="voter-nominee-card">
+                <div className="voter-nominee-avatar">
                   {nominee.photo_url ? (
                     <img src={nominee.photo_url} alt={nominee.name} className="voter-avatar-img" />
                   ) : (
@@ -386,7 +436,7 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
                 </div>
                 <div className="voter-nominee-info">
                   <span className="voter-category-badge">
-                    {nominee.categories?.name || nominee.category_name || 'Category Nominee'}
+                    {categoryName}
                   </span>
                   <h3 className="voter-nominee-name">{nominee.name}</h3>
                   {nominee.course && (
@@ -400,84 +450,150 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
                 </div>
               </div>
 
-              {/* Vote Selection Options */}
-              <div className="voter-choice-section">
-                <label className="voter-section-label">Select Vote Package</label>
-                <div className="voter-options-grid">
-                  {VOTE_OPTIONS.map((opt) => {
-                    const isSelected = !isCustom && selectedVotes === opt.votes;
-                    return (
-                      <button
-                        key={opt.votes}
-                        type="button"
-                        className={`voter-pill-btn ${isSelected ? 'selected' : ''}`}
-                        onClick={() => handleSelectOption(opt.votes)}
-                      >
-                        <span className="voter-pill-label">{opt.label}</span>
-                        <span className="voter-pill-pts">{opt.points} pts (KES {opt.amount})</span>
-                      </button>
-                    );
-                  })}
+              {/* Fixed 1 Vote Ballot Policy Card */}
+              <div style={{
+                background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.12), rgba(15, 81, 50, 0.22))',
+                border: '1.5px solid var(--color-accent)',
+                borderRadius: '12px',
+                padding: '14px 16px',
+                marginTop: '14px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '12px',
+              }}>
+                <div>
+                  <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.8px', color: 'var(--color-accent)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '2px' }}>
+                    <ShieldCheck size={14} /> One Student, One Vote Policy
+                  </span>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--color-text)' }}>
+                    1 Ballot (10 Points)
+                  </div>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                    Fair Play: 1 vote per student per category
+                  </span>
                 </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: '1.35rem', fontWeight: 900, color: 'var(--color-accent)' }}>
+                    KES {BALLOT_AMOUNT}
+                  </div>
+                  <span style={{ fontSize: '0.7rem', color: '#22c55e', fontWeight: 600 }}>
+                    Official Fee
+                  </span>
+                </div>
+              </div>
 
-                {/* Custom Votes Option */}
-                <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <input
-                    type="number"
-                    min="1"
-                    max="10000"
-                    placeholder="Or enter custom votes (min 1)..."
-                    value={customVotes}
-                    onChange={handleCustomChange}
-                    className="form-control"
-                    style={{ fontSize: '0.88rem', padding: '8px 12px' }}
-                  />
-                  {isCustom && customVotes && (
-                    <span style={{ fontSize: '0.82rem', color: 'var(--color-accent)', fontWeight: 600, whiteSpace: 'nowrap' }}>
-                      = KES {customVotes} ({parseInt(customVotes, 10) >= 100 ? Math.floor(parseInt(customVotes, 10) * 1.1) : customVotes} pts)
+              {/* Already Voted in this Category Banner */}
+              {alreadyVoted ? (
+                <div style={{
+                  background: 'rgba(234, 179, 8, 0.12)',
+                  border: '1.5px solid rgba(234, 179, 8, 0.4)',
+                  borderRadius: '12px',
+                  padding: '16px',
+                  textAlign: 'center',
+                  marginTop: '16px',
+                }}>
+                  <div style={{ color: '#eab308', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontWeight: 700, fontSize: '0.98rem', marginBottom: '8px' }}>
+                    <Lock size={18} /> Category Vote Already Cast
+                  </div>
+                  <p style={{ fontSize: '0.86rem', color: 'var(--color-text)', lineHeight: 1.5, margin: '0 0 14px' }}>
+                    {alreadyVotedMessage || `You have already cast your vote in the "${categoryName}" category! To ensure fairness, each student can only vote once per category.`}
+                  </p>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--color-accent)', fontWeight: 600, margin: '0 0 14px' }}>
+                    💡 You are still eligible to vote in other award categories!
+                  </p>
+                  <button
+                    type="button"
+                    className="btn btn-gold btn-md"
+                    onClick={onClose}
+                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                  >
+                    Explore Other Categories
+                  </button>
+                </div>
+              ) : (
+                <>
+                  {/* Student Institutional Email Input */}
+                  <div className="form-group" style={{ marginTop: '16px', marginBottom: '14px' }}>
+                    <label htmlFor="voter_email" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.86rem', fontWeight: 600 }}>
+                      <Mail size={16} style={{ color: 'var(--color-accent)' }} />
+                      DeKUT Student Email
+                      {checkingEligibility && (
+                        <Loader2 size={12} className="spin-icon" style={{ marginLeft: 'auto', color: 'var(--color-accent)' }} />
+                      )}
+                      {isEmailValid && !checkingEligibility && (
+                        <span style={{ marginLeft: 'auto', fontSize: '0.72rem', color: '#22c55e', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '3px' }}>
+                          <CheckCircle2 size={12} /> Eligible
+                        </span>
+                      )}
+                    </label>
+                    <input
+                      type="email"
+                      id="voter_email"
+                      className={`form-control ${emailFormatError ? 'is-invalid' : ''}`}
+                      placeholder="e.g. john.doe22@students.ac.ke"
+                      value={email}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        setError('');
+                      }}
+                      onBlur={() => setEmailTouched(true)}
+                      autoComplete="email"
+                      required
+                      style={{ fontSize: '0.88rem' }}
+                    />
+                    <span style={{ fontSize: '0.74rem', color: emailFormatError ? '#ef4444' : 'var(--color-text-muted)', marginTop: '4px', display: 'block' }}>
+                      {emailFormatError || 'Format: firstname.lastnameRR@students.ac.ke (Admission year RR: 20–26)'}
                     </span>
-                  )}
-                </div>
-              </div>
+                  </div>
 
-              {/* M-Pesa Phone Number Input */}
-              <div className="form-group" style={{ marginTop: 'var(--space-md)', marginBottom: 0 }}>
-                <label htmlFor="voter_phone" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.86rem', fontWeight: 600 }}>
-                  <Smartphone size={16} style={{ color: '#22c55e' }} />
-                  M-Pesa Phone Number
-                </label>
-                <input
-                  type="tel"
-                  id="voter_phone"
-                  className="form-control"
-                  placeholder="e.g. 0712345678 or 0112345678"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  autoComplete="tel"
-                  required
-                />
-                <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '4px', display: 'block' }}>
-                  A prompt will appear on this phone to enter your M-Pesa PIN.
-                </span>
-              </div>
+                  {/* M-Pesa Phone Number Input */}
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label htmlFor="voter_phone" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.86rem', fontWeight: 600 }}>
+                      <Smartphone size={16} style={{ color: '#22c55e' }} />
+                      M-Pesa Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      id="voter_phone"
+                      className="form-control"
+                      placeholder="e.g. 0712345678 or 0112345678"
+                      value={phone}
+                      onChange={(e) => {
+                        setPhone(e.target.value);
+                        setError('');
+                      }}
+                      autoComplete="tel"
+                      required
+                      style={{ fontSize: '0.88rem' }}
+                    />
+                    <span style={{ fontSize: '0.74rem', color: 'var(--color-text-muted)', marginTop: '4px', display: 'block' }}>
+                      An M-Pesa prompt for KSh 10 will be sent to this phone.
+                    </span>
+                  </div>
 
-              {error && <p className="form-error" style={{ marginTop: 'var(--space-md)' }}>{error}</p>}
+                  {error && <p className="form-error" style={{ marginTop: '14px' }}>{error}</p>}
+                </>
+              )}
             </div>
 
             {/* Modal Actions */}
-            <div className="modal-footer voter-modal-footer">
-              <button
-                type="submit"
-                className="btn btn-gold btn-lg voter-confirm-btn"
-                id="vote-submit-btn"
-                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-              >
-                <CheckCircle2 size={18} /> Pay KES {currentAmount} & Cast {currentVotes} {currentVotes === 1 ? 'Vote' : 'Votes'}
-              </button>
-              <p className="voter-ballot-notice" style={{ marginTop: '8px' }}>
-                Secure M-Pesa Checkout • Official DeKUTSO Comrade Choice Award 2026
-              </p>
-            </div>
+            {!alreadyVoted && (
+              <div className="modal-footer voter-modal-footer">
+                <button
+                  type="submit"
+                  className="btn btn-gold btn-lg voter-confirm-btn"
+                  id="vote-submit-btn"
+                  disabled={checkingEligibility || alreadyVoted}
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                >
+                  <CheckCircle2 size={18} /> Pay KES {BALLOT_AMOUNT} & Cast Ballot
+                </button>
+                <p className="voter-ballot-notice" style={{ marginTop: '8px' }}>
+                  Secure PayHero M-Pesa • 1 Vote per Category per Student
+                </p>
+              </div>
+            )}
           </form>
         )}
 
@@ -519,94 +635,82 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
             <div className="stk-hype-section" style={{ margin: '20px 0 16px' }}>
               <button
                 type="button"
-                className="stk-hype-btn"
+                className="btn btn-gold btn-sm stk-cheer-btn"
                 onClick={handleCheer}
-                id="cheer-hype-btn"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontWeight: 600,
+                  fontSize: '0.85rem',
+                  padding: '7px 18px',
+                }}
               >
-                <Flame size={18} style={{ color: '#f59e0b' }} />
-                Tap to Hype {nomineeFirstName}!
+                <Flame size={16} /> Tap to Cheer {nomineeFirstName}!
               </button>
-              <p className="stk-hype-status">
+              <div style={{ marginTop: '6px', fontSize: '0.78rem', color: 'var(--color-accent)' }}>
                 {getCheerMessage(cheerCount, nomineeFirstName)}
-              </p>
-            </div>
-
-            {/* Comrade Trivia Carousel */}
-            <div className="stk-trivia-card" style={{ maxWidth: '340px', margin: '0 auto' }}>
-              <span className="stk-trivia-icon">{currentTrivia.icon}</span>
-              <div className="stk-trivia-content">
-                <strong>{currentTrivia.title}</strong>
-                <span>{currentTrivia.text}</span>
               </div>
             </div>
 
-            {/* Plain Cancel link */}
-            <div style={{ marginTop: '16px' }}>
+            {/* Fun Comrade Lore / Trivia Cards */}
+            <div className="stk-trivia-card" style={{ maxWidth: '380px', margin: '0 auto 18px' }}>
+              <span className="stk-trivia-icon">{currentTrivia.icon}</span>
+              <div className="stk-trivia-content">
+                <div className="stk-trivia-title">{currentTrivia.title}</div>
+                <div className="stk-trivia-text">{currentTrivia.text}</div>
+              </div>
+            </div>
+
+            <div style={{ textAlign: 'center', marginTop: '12px' }}>
               <button
                 type="button"
-                className="stk-cancel-link"
+                className="btn btn-outline btn-sm"
                 onClick={handleCancelInitiation}
+                style={{ fontSize: '0.82rem' }}
               >
-                Cancel
+                Cancel Initiation
               </button>
             </div>
           </div>
         )}
 
-        {/* STEP 3: Waiting for PIN on Phone */}
+        {/* STEP 3: Active STK Prompt Waiting on Phone */}
         {step === 'waiting' && (
-          <div className="modal-body" style={{ textAlign: 'center', padding: '32px 20px 24px' }}>
+          <div className="modal-body" style={{ textAlign: 'center', padding: '36px 20px' }}>
             <div style={{
               width: '64px',
               height: '64px',
               borderRadius: '50%',
-              background: 'rgba(34, 197, 94, 0.12)',
-              border: '2px solid #22c55e',
+              background: 'rgba(212, 175, 55, 0.15)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               margin: '0 auto 16px',
-              color: '#22c55e'
+              color: 'var(--color-accent)'
             }}>
               <Smartphone size={32} />
             </div>
 
-            <h3 style={{ fontSize: '1.25rem', marginBottom: '8px', color: 'var(--color-text)' }}>
+            <h3 style={{ fontSize: '1.25rem', marginBottom: '8px' }}>
               Check Your Phone!
             </h3>
-            <p style={{ color: 'var(--color-text-muted)', fontSize: '0.92rem', lineHeight: 1.5, marginBottom: '14px' }}>
-              An M-Pesa prompt has been sent to <strong style={{ color: 'var(--color-text)' }}>{phone}</strong>.<br />
-              Enter your M-Pesa PIN to complete payment of <strong style={{ color: '#22c55e' }}>KES {currentAmount}</strong>.
+            <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', lineHeight: 1.5, marginBottom: '20px' }}>
+              An M-Pesa STK prompt for <strong style={{ color: 'var(--color-accent)' }}>KES {BALLOT_AMOUNT}</strong> has been sent to <strong style={{ color: 'var(--color-text)' }}>{phone}</strong>.<br />
+              Enter your M-Pesa PIN to submit your ballot.
             </p>
 
-            {cheerCount > 0 && (
-              <div style={{
-                fontSize: '0.82rem',
-                color: 'var(--color-primary)',
-                fontWeight: 600,
-                marginBottom: '14px',
-                background: 'rgba(27, 94, 32, 0.08)',
-                padding: '6px 14px',
-                borderRadius: '20px',
-                display: 'inline-block'
-              }}>
-                🔥 You sent {cheerCount} {cheerCount === 1 ? 'cheer' : 'cheers'} to {nomineeFirstName}!
-              </div>
-            )}
-
             <div style={{
-              display: 'inline-flex',
+              display: 'flex',
               alignItems: 'center',
-              gap: '8px',
-              padding: '8px 16px',
-              borderRadius: '20px',
-              background: 'rgba(255, 255, 255, 0.05)',
-              fontSize: '0.82rem',
+              justifyContent: 'center',
+              gap: '10px',
               color: 'var(--color-text-muted)',
-              marginBottom: '20px'
+              fontSize: '0.85rem',
+              marginBottom: '24px'
             }}>
-              <Loader2 size={15} className="spin-icon" />
-              Waiting for PIN confirmation ({pollAttempt}/25)...
+              <Loader2 size={16} className="spin-icon" style={{ color: 'var(--color-accent)' }} />
+              <span>Verifying payment... (Attempt {pollAttempt})</span>
             </div>
 
             <div>
@@ -641,14 +745,27 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
             </div>
 
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--color-accent)', fontSize: '0.85rem', fontWeight: 600, marginBottom: '6px' }}>
-              <Sparkles size={16} /> VOTE CONFIRMED
+              <Sparkles size={16} /> BALLOT CONFIRMED
             </div>
             <h3 style={{ fontSize: '1.35rem', marginBottom: '8px' }}>
               Thank You for Voting!
             </h3>
-            <p style={{ color: 'var(--color-text-muted)', fontSize: '0.92rem', lineHeight: 1.5, marginBottom: '16px' }}>
-              <strong style={{ color: 'var(--color-text)' }}>{completedData?.points || currentVotes} points</strong> have been credited to <strong style={{ color: 'var(--color-text)' }}>{nominee.name}</strong>.
+            <p style={{ color: 'var(--color-text-muted)', fontSize: '0.92rem', lineHeight: 1.5, marginBottom: '14px' }}>
+              <strong style={{ color: 'var(--color-text)' }}>{completedData?.points || BALLOT_POINTS} points</strong> have been credited to <strong style={{ color: 'var(--color-text)' }}>{nominee.name}</strong>.
             </p>
+
+            <div style={{
+              background: 'rgba(34, 197, 94, 0.1)',
+              border: '1px solid rgba(34, 197, 94, 0.3)',
+              borderRadius: '8px',
+              padding: '10px 14px',
+              fontSize: '0.84rem',
+              color: 'var(--color-text)',
+              marginBottom: '16px',
+              textAlign: 'left'
+            }}>
+              🔒 <strong>Category Locked:</strong> Your vote in <em>{categoryName}</em> has been securely recorded for <strong>{email}</strong>. You are still eligible to vote in other categories!
+            </div>
 
             {completedData?.refNo && (
               <div style={{
@@ -670,7 +787,7 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
               onClick={onClose}
               style={{ width: '100%' }}
             >
-              Done
+              Vote in Other Categories
             </button>
           </div>
         )}
@@ -682,29 +799,28 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
               width: '64px',
               height: '64px',
               borderRadius: '50%',
-              background: 'rgba(239, 68, 68, 0.12)',
-              border: '2px solid #ef4444',
+              background: 'rgba(239, 68, 68, 0.15)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               margin: '0 auto 16px',
-              color: '#ef4444'
+              color: 'var(--color-danger)'
             }}>
               <AlertCircle size={32} />
             </div>
 
-            <h3 style={{ fontSize: '1.2rem', marginBottom: '8px', color: '#ef4444' }}>
-              Payment Not Completed
+            <h3 style={{ fontSize: '1.25rem', marginBottom: '8px' }}>
+              Vote Not Completed
             </h3>
             <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', lineHeight: 1.5, marginBottom: '24px' }}>
-              {error || 'The transaction could not be completed.'}
+              {error || 'The payment was cancelled or timed out. No funds were deducted.'}
             </p>
 
             <div style={{ display: 'flex', gap: '10px' }}>
               <button
                 type="button"
                 className="btn btn-outline"
-                onClick={onClose}
+                onClick={handleCloseModal}
                 style={{ flex: 1 }}
               >
                 Close
