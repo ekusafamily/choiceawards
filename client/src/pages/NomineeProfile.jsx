@@ -214,8 +214,7 @@ export default function NomineeProfile() {
               )}
             </div>
 
-            {/* Points tally - hidden until voting commences */}
-            {/* <div className="profile-points-box">
+            <div className="profile-points-box">
               <Trophy size={24} />
               <div>
                 <span className="points-num">
@@ -223,22 +222,16 @@ export default function NomineeProfile() {
                 </span>
                 <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>points</span>
               </div>
-            </div> */}
+            </div>
 
             <div style={{ display: 'flex', gap: 'var(--space-sm)', flexWrap: 'wrap', alignItems: 'center' }}>
-              {/* Vote button - commented out for nomination period */}
-              {/* <button
+              <button
                 className="btn btn-gold"
                 onClick={() => setShowVoteModal(true)}
                 id="profile-vote-btn"
               >
                 Vote for {nominee.name.split(' ')[0]}
-              </button> */}
-
-              <div className="voting-commencing-banner" id="profile-voting-soon">
-                <Clock size={16} />
-                <span>Voting Commencing Soon</span>
-              </div>
+              </button>
 
               <div className="profile-share" style={{ marginTop: 0 }}>
                 <button

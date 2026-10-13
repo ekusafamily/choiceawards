@@ -432,14 +432,13 @@ Replace the status pill with the top winner's points counter:
 
 ## 6. Summary Checklist for Restoring Voting
 
-When you are ready to open voting:
-- [ ] **Step 1:** Uncomment the `Nominees` and `Results` links in [`client/src/components/Navbar.jsx`](client/src/components/Navbar.jsx).
-- [ ] **Step 2:** Point `/results` route back to `<Results />` in [`client/src/App.jsx`](client/src/App.jsx).
-- [ ] **Step 3:** Uncomment `Top Nominees` and `Live Results` links in [`client/src/components/Footer.jsx`](client/src/components/Footer.jsx).
-- [ ] **Step 4:** Uncomment the podium section in [`client/src/pages/TopNominees.jsx`](client/src/pages/TopNominees.jsx).
-- [ ] **Step 5:** Restore vote buttons in [`client/src/components/NomineeCard.jsx`](client/src/components/NomineeCard.jsx), [`client/src/pages/NomineeProfile.jsx`](client/src/pages/NomineeProfile.jsx), and [`client/src/components/LandingSearchBar.jsx`](client/src/components/LandingSearchBar.jsx).
-- [ ] **Step 6:** Uncomment points displays across cards, tables, and profiles.
-- [ ] **Step 7:** Run `npm run build` in `client/` to verify that everything compiles cleanly.
+- [x] **Step 1:** Uncomment the `Nominees` and `Results` links in [`client/src/components/Navbar.jsx`](client/src/components/Navbar.jsx). *(Completed)*
+- [x] **Step 2:** Point `/results` route back to `<Results />` in [`client/src/App.jsx`](client/src/App.jsx). *(Completed)*
+- [x] **Step 3:** Uncomment `Top Nominees` and `Live Results` links in [`client/src/components/Footer.jsx`](client/src/components/Footer.jsx). *(Completed)*
+- [x] **Step 4:** Uncomment the podium section in [`client/src/pages/TopNominees.jsx`](client/src/pages/TopNominees.jsx). *(Completed)*
+- [x] **Step 5:** Restore vote buttons in [`client/src/components/NomineeCard.jsx`](client/src/components/NomineeCard.jsx), [`client/src/pages/NomineeProfile.jsx`](client/src/pages/NomineeProfile.jsx), and [`client/src/components/LandingSearchBar.jsx`](client/src/components/LandingSearchBar.jsx). *(Completed)*
+- [x] **Step 6:** Uncomment points displays across cards, tables, and profiles. *(Completed)*
+- [x] **Step 7:** Run `npm run build` in `client/` to verify that everything compiles cleanly. *(Completed)*
 
 ---
 

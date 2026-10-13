@@ -28,7 +28,7 @@ export default function App() {
           <Route path="/nominate" element={<Nominate />} />
           <Route path="/nominees" element={<TopNominees />} />
           <Route path="/successful-nominations" element={<SuccessfulNominations />} />
-          <Route path="/results" element={<SuccessfulNominations />} />
+          <Route path="/results" element={<Results />} />
           <Route path="/admin" element={<Admin />} />
         </Routes>
       </main>

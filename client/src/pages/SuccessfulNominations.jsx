@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Search, CheckCircle2, User, Clock,
-  X
+  X, Trophy
 } from 'lucide-react';
 import apiClient from '../api/client';
 
@@ -190,10 +190,14 @@ export default function SuccessfulNominations() {
                 </Link>
 
                 <div className="nominee-card-vote successful-nom-actions">
-                  <div className="voting-soon-badge">
-                    <Clock size={12} />
-                    <span>Voting Commencing Soon</span>
-                  </div>
+                  <Link
+                    to={`/nominees/${nom.id}`}
+                    className="btn btn-gold btn-sm"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 6, textDecoration: 'none' }}
+                  >
+                    <Trophy size={13} />
+                    <span>Vote</span>
+                  </Link>
                   <div className="successful-nom-action-row">
                     <button
                       type="button"

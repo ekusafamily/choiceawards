@@ -53,7 +53,7 @@ export default function Results() {
           <h2>Voting Results & Standings</h2>
           <hr className="gold-line" />
           <p>
-            Nominations are currently ongoing. Official points and live standings will be revealed once voting commences.
+            Real-time standings and official point tallies across all categories.
           </p>
         </div>
 

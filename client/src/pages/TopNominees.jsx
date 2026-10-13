@@ -42,13 +42,9 @@ function PodiumCard({ nominee, rank }) {
         <span className="podium-category-tag">{nominee.categories.name}</span>
       )}
 
-      {/* Points pill hidden until voting commences */}
-      {/* <div className="podium-points-pill">
+      <div className="podium-points-pill">
         <Trophy size={14} />
         <span>{(nominee.total_points ?? 0).toLocaleString()} pts</span>
-      </div> */}
-      <div className="podium-status-pill">
-        <span>Voting Commencing Soon</span>
       </div>
     </Link>
   );
@@ -80,13 +76,9 @@ function NomineeRow({ nominee, rank }) {
         )}
       </div>
 
-      {/* Points tally hidden until voting commences */}
-      {/* <div className="nominee-row-points">
+      <div className="nominee-row-points">
         <Trophy size={13} />
         <span>{(nominee.total_points ?? 0).toLocaleString()}</span>
-      </div> */}
-      <div className="nominee-row-soon">
-        <span>Voting Commencing Soon</span>
       </div>
 
       <ChevronRight size={16} className="nominee-row-chevron" />
@@ -157,8 +149,7 @@ export default function TopNominees() {
 
         {!loading && !error && nominees.length > 0 && (
           <>
-            {/* Podium section hidden during nomination phase */}
-            {/* {podium.length > 0 && (
+            {podium.length > 0 && (
               <section className="top-nominees-podium-section">
                 <h2 className="section-label">
                   <Trophy size={18} /> Podium
@@ -169,16 +160,16 @@ export default function TopNominees() {
                   ))}
                 </div>
               </section>
-            )} */}
+            )}
 
-            {nominees.length > 0 && (
+            {rest.length > 0 && (
               <section className="top-nominees-list-section">
                 <h2 className="section-label">
-                  <Medal size={18} /> Nominees
+                  <Medal size={18} /> Full Rankings
                 </h2>
                 <div className="top-nominees-list">
-                  {nominees.map((nom, i) => (
-                    <NomineeRow key={nom.id} nominee={nom} rank={i + 1} />
+                  {rest.map((nom, i) => (
+                    <NomineeRow key={nom.id} nominee={nom} rank={i + 4} />
                   ))}
                 </div>
               </section>

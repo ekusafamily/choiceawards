@@ -11,14 +11,13 @@ export default function StatsBar({ categoriesCount = 0, nomineesCount = 0, votes
             <span className="stat-number">{nomineesCount}</span>
             <span className="stat-label">Nominees</span>
           </div>
-          {/* Total Votes hidden during nomination phase */}
-          {/* <div className="stat-item">
+          <div className="stat-item">
             <span className="stat-number">{votesCount.toLocaleString()}</span>
             <span className="stat-label">Total Votes</span>
-          </div> */}
+          </div>
           <div className="stat-item">
-            <span className="stat-number" style={{ color: 'var(--color-accent)' }}>Active</span>
-            <span className="stat-label">Nominations Phase</span>
+            <span className="stat-number" style={{ color: 'var(--color-accent)' }}>Live</span>
+            <span className="stat-label">Voting Phase</span>
           </div>
         </div>
       </div>

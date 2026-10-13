@@ -28,10 +28,8 @@ export default function LeaderboardTable({ nominees = [], categoryName = '', onV
           <tr>
             <th style={{ width: '60px', textAlign: 'center' }}>Pos</th>
             <th>Nominee</th>
-            {/* Points & Vote headers hidden during nomination period */}
-            {/* <th style={{ textAlign: 'right' }}>Points</th> */}
-            <th style={{ width: '180px', textAlign: 'center' }}>Status</th>
-            {/* {onVote && <th style={{ width: '100px', textAlign: 'center' }}>Vote</th>} */}
+            <th style={{ textAlign: 'right' }}>Points</th>
+            {onVote && <th style={{ width: '100px', textAlign: 'center' }}>Vote</th>}
           </tr>
         </thead>
         <tbody>
@@ -78,17 +76,10 @@ export default function LeaderboardTable({ nominees = [], categoryName = '', onV
                     </div>
                   </Link>
                 </td>
-                {/* Points cell hidden until voting commences */}
-                {/* <td className="points-cell">
+                <td className="points-cell">
                   {(nominee.total_points || 0).toLocaleString()}
-                </td> */}
-                <td style={{ textAlign: 'center' }}>
-                  <span className="table-voting-soon-badge">
-                    Voting Commencing Soon
-                  </span>
                 </td>
-                {/* Vote button commented out for nomination period */}
-                {/* {onVote && (
+                {onVote && (
                   <td style={{ textAlign: 'center' }}>
                     <button
                       className="btn btn-gold btn-sm leaderboard-vote-btn"
@@ -99,7 +90,7 @@ export default function LeaderboardTable({ nominees = [], categoryName = '', onV
                       Vote
                     </button>
                   </td>
-                )} */}
+                )}
               </tr>
             );
           })}

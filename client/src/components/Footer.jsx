@@ -46,12 +46,14 @@ export default function Footer() {
               <li>
                 <Link to="/">Home & Categories</Link>
               </li>
-              {/* Top Nominees hidden during nomination phase */}
-              {/* <li>
+              <li>
                 <Link to="/nominees">
                   <Trophy size={13} className="inline-icon" /> Top Nominees
                 </Link>
-              </li> */}
+              </li>
+              <li>
+                <Link to="/results">Live Results & Tallies</Link>
+              </li>
               <li>
                 <Link to="/nominate">Submit a Nomination</Link>
               </li>

@@ -518,13 +518,13 @@ async function renderNomineeSharePage(req, res) {
     <h1>${escapeHtml(nomineeName)}</h1>
     <p class="subtitle">${escapeHtml(nominee.course || 'DeKUT Student')}${nominee.year_of_study ? ` • ${escapeHtml(nominee.year_of_study)}` : ''}</p>
     
-    <!-- Points tally hidden until voting commences -->
-    <!-- <div class="points-badge">
+    <!-- Points tally -->
+    <div class="points-badge">
       🏆 <span id="pts-count">${points}</span> Points
-    </div> -->
+    </div>
 
-    <!-- Direct M-Pesa Voting Form commented out during nomination period -->
-    <!-- <div class="vote-box">
+    <!-- Direct M-Pesa Voting Form -->
+    <div class="vote-box">
       <span class="pkg-label">Select Votes</span>
       <div class="pkg-grid">
         <button type="button" class="pkg-btn active" data-amount="10" data-votes="10">10 Votes<br><span style="font-size: 0.72rem; opacity: 0.7;">KES 10</span></button>
@@ -540,14 +540,6 @@ async function renderNomineeSharePage(req, res) {
       </button>
 
       <div id="vote-status" class="status-msg status-info" style="display: none;"></div>
-    </div> -->
-
-    <div class="voting-soon-card-banner">
-      <div style="font-size: 1.25rem; margin-bottom: 4px;">⏳</div>
-      <strong style="color: #d4a017; font-size: 1.05rem; letter-spacing: 0.3px;">Voting Commencing Soon</strong>
-      <p style="font-size: 0.85rem; color: rgba(255, 255, 255, 0.75); margin-top: 6px; line-height: 1.4;">
-        Nominations are currently open. Voting will commence soon!
-      </p>
     </div>
 
     <!-- Social Sharing Row -->

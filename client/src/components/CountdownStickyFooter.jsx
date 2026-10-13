@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Clock, Sparkles, ChevronDown, ChevronUp, UserCheck } from 'lucide-react';
 
-// Default fallback target date if not configured in .env
-const DEFAULT_VOTING_DATE = '2026-10-13T23:59:59+03:00';
+// Default fallback target date (set to passed date to mark voting live)
+const DEFAULT_VOTING_DATE = '2026-10-13T00:00:00+03:00';
 
 function padZero(num) {
   return String(Math.max(0, num)).padStart(2, '0');

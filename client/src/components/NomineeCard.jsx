@@ -30,20 +30,18 @@ export default function NomineeCard({ nominee, onVote }) {
               : ''}
           </p>
 
-          {/* Points tally - hidden until voting commences */}
-          {/* <div className="nominee-card-points">
+          <div className="nominee-card-points">
             <div>
               <span className="points-label">Points</span>
             </div>
             <span className="points-value">
               {(nominee.total_points || 0).toLocaleString()}
             </span>
-          </div> */}
+          </div>
         </div>
       </Link>
 
-      {/* Vote button commented out for nomination period */}
-      {/* {onVote && (
+      {onVote && (
         <div className="nominee-card-vote">
           <button
             className="btn btn-gold btn-sm nominee-vote-btn"
@@ -54,14 +52,7 @@ export default function NomineeCard({ nominee, onVote }) {
             Vote
           </button>
         </div>
-      )} */}
-
-      <div className="nominee-card-vote">
-        <div className="voting-soon-badge" id={`voting-soon-${nominee.id}`}>
-          <Clock size={12} />
-          <span>Voting Commencing Soon</span>
-        </div>
-      </div>
+      )}
     </div>
   );
 }

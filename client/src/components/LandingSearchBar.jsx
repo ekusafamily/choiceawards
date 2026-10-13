@@ -281,20 +281,18 @@ export default function LandingSearchBar({
                                 </div>
                                 <div className="landing-search-item-sub">
                                   <span>{nom.course || 'DeKUT Student'}</span>
-                                  {/* Points tally hidden until voting commences */}
-                                  {/* {nom.total_points !== undefined && (
+                                  {nom.total_points !== undefined && (
                                     <span className="landing-search-points">
                                       <Trophy size={12} color="var(--color-accent)" />
                                       {(nom.total_points || 0).toLocaleString()} pts
                                     </span>
-                                  )} */}
+                                  )}
                                 </div>
                               </div>
                             </Link>
 
                             <div className="landing-search-item-actions">
-                              {/* Vote button commented out for nomination period */}
-                              {/* {onVote && (
+                              {onVote && (
                                 <button
                                   type="button"
                                   className="btn btn-gold btn-sm landing-search-vote-btn"
@@ -307,11 +305,7 @@ export default function LandingSearchBar({
                                 >
                                   <Trophy size={13} /> Vote
                                 </button>
-                              )} */}
-                              <span className="landing-search-soon-badge">
-                                <Clock size={11} style={{ marginRight: 4 }} />
-                                Voting Commencing Soon
-                              </span>
+                              )}
                               <Link
                                 to={`/nominees/${nom.id}`}
                                 className="landing-search-view-link"
