@@ -52,8 +52,14 @@ CREATE TABLE IF NOT EXISTS votes (
   transaction_id TEXT,
   voter_phone TEXT,
   voter_email TEXT,
+  message TEXT,
   created_at TIMESTAMPTZ DEFAULT now()
 );
+
+-- Migration helpers for Supabase SQL Editor:
+-- ALTER TABLE votes ADD COLUMN IF NOT EXISTS voter_email TEXT;
+-- ALTER TABLE votes ADD COLUMN IF NOT EXISTS message TEXT;
+-- CREATE UNIQUE INDEX IF NOT EXISTS idx_votes_voter_category ON votes (voter_email, category_id) WHERE voter_email IS NOT NULL;
 
 -- Indexes & Unique Constraints for performance and fairness
 CREATE INDEX IF NOT EXISTS idx_nominees_category ON nominees(category_id);

@@ -3,6 +3,7 @@ const supabase = require('../config/supabase');
 const paynexus = require('../services/paynexus');
 const payhero = require('../services/payhero');
 const voterTracker = require('../services/voterTracker');
+const pendingVotes = require('../services/pendingVotes');
 
 const router = express.Router();
 
@@ -10,7 +11,7 @@ function getGateway() {
   return (process.env.PAYMENT_GATEWAY || 'payhero').toLowerCase();
 }
 
-// In-memory tracker for ongoing transactions
+// In-memory tracker for ongoing transactions (backed by disk persistence in pendingVotes)
 const PENDING_VOTES = new Map();
 const FULFILLED_VOTES = new Set();
 const STATUS_CACHE = new Map(); // reference -> { timestamp, data }
@@ -24,18 +25,18 @@ function calculatePoints(amount) {
  */
 async function fulfillVote(reference, statusResult) {
   if (FULFILLED_VOTES.has(reference)) {
-    const pending = PENDING_VOTES.get(reference);
+    const pending = PENDING_VOTES.get(reference) || pendingVotes.getPendingVote(reference);
     return { points: pending ? pending.points : 0 };
   }
 
-  const pending = PENDING_VOTES.get(reference);
+  const pending = PENDING_VOTES.get(reference) || pendingVotes.getPendingVote(reference);
   if (!pending) {
     console.warn(`No pending vote metadata found for reference: ${reference}`);
     return null;
   }
 
   const { nominee_id, category_id, amount = 10, points = 10, phone, email } = pending;
-  const transactionId = statusResult?.refNo || statusResult?.data?.provider_transaction_id || statusResult?.data?.MpesaReceiptNumber || reference;
+  const transactionId = statusResult?.refNo || statusResult?.data?.provider_transaction_id || statusResult?.data?.MpesaReceiptNumber || statusResult?.data?.third_party_reference || reference;
   const voterPhone = phone || statusResult?.data?.phone || statusResult?.data?.Phone || null;
   const voterEmail = email || null;
 
@@ -57,18 +58,20 @@ async function fulfillVote(reference, statusResult) {
       return { points, transactionId };
     }
 
-    // 2. Insert vote row into Supabase (try with voter_email, fallback if column absent)
+    // 2. Insert vote row into Supabase (recording full message & transaction details)
     let insertPayload = {
       nominee_id,
       category_id,
       amount,
       points,
       transaction_id: transactionId,
-      voter_phone: voterPhone,
+      voter_phone: voterEmail ? `${voterPhone || ''} (${voterEmail})`.trim() : (voterPhone || null),
     };
     if (voterEmail) {
       insertPayload.voter_email = voterEmail;
     }
+    const messageDetail = statusResult?.data?.ResultDesc || statusResult?.data?.message || `M-Pesa payment confirmed for KSh ${amount} (Ref: ${transactionId})`;
+    insertPayload.message = messageDetail;
 
     let { data: vote, error: voteError } = await supabase
       .from('votes')
@@ -76,9 +79,11 @@ async function fulfillVote(reference, statusResult) {
       .select()
       .single();
 
-    // If voter_email column doesn't exist yet in Supabase schema (error 42703)
-    if (voteError && voteError.code === '42703') {
+    // If Supabase schema does not have voter_email or message columns (PGRST204, 42703, or column missing error)
+    if (voteError && (voteError.code === 'PGRST204' || voteError.code === '42703' || voteError.message?.toLowerCase().includes('column'))) {
+      console.warn('Supabase schema missing optional columns, retrying with core columns:', voteError.message);
       delete insertPayload.voter_email;
+      delete insertPayload.message;
       const retry = await supabase.from('votes').insert(insertPayload).select().single();
       voteError = retry.error;
       vote = retry.data;
@@ -95,6 +100,8 @@ async function fulfillVote(reference, statusResult) {
 
     if (voteError) {
       console.error('Supabase vote insert error:', voteError.message);
+    } else {
+      console.log(`✅ Supabase vote row recorded in database: ID ${vote?.id || 'OK'}, Ref: ${transactionId}`);
     }
 
     // 3. Increment points on nominee
@@ -118,6 +125,7 @@ async function fulfillVote(reference, statusResult) {
       }
     }
 
+    pendingVotes.removePendingVote(reference);
     FULFILLED_VOTES.add(reference);
     console.log(`✅ Vote fulfilled successfully: ${points} points credited to nominee ${nominee_id} (Voter: ${voterEmail || voterPhone}, Ref: ${transactionId})`);
     return { points, transactionId };
@@ -273,9 +281,15 @@ router.post('/initiate', async (req, res, next) => {
       created_at: Date.now(),
     };
 
-    // Save pending vote metadata by reference and external reference
-    if (initResult.reference) PENDING_VOTES.set(initResult.reference, voteMeta);
-    if (initResult.externalReference) PENDING_VOTES.set(initResult.externalReference, voteMeta);
+    // Save pending vote metadata by reference and external reference (both memory and disk)
+    if (initResult.reference) {
+      PENDING_VOTES.set(initResult.reference, voteMeta);
+      pendingVotes.savePendingVote(initResult.reference, voteMeta);
+    }
+    if (initResult.externalReference) {
+      PENDING_VOTES.set(initResult.externalReference, voteMeta);
+      pendingVotes.savePendingVote(initResult.externalReference, voteMeta);
+    }
 
     return res.json({
       success: true,
@@ -422,6 +436,40 @@ router.post('/webhook', async (req, res) => {
   } catch (err) {
     console.error('Webhook error:', err);
     return res.status(200).json({ received: true });
+  }
+});
+
+// GET /api/votes - Retrieve recorded votes from database for audit & verification
+router.get('/', async (req, res, next) => {
+  try {
+    if (!supabase) {
+      return res.status(500).json({ error: { message: 'Database client not initialized' } });
+    }
+
+    const { limit = 100 } = req.query;
+    const { data: votes, error } = await supabase
+      .from('votes')
+      .select(`
+        *,
+        nominees (id, name),
+        categories (id, name)
+      `)
+      .order('created_at', { ascending: false })
+      .limit(Number(limit));
+
+    if (error) {
+      // Fallback query without joins
+      const fallback = await supabase
+        .from('votes')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(Number(limit));
+      return res.json(fallback.data || []);
+    }
+
+    return res.json(votes || []);
+  } catch (err) {
+    next(err);
   }
 });
 
