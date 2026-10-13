@@ -43,3 +43,27 @@ The frontend runs on `http://localhost:3000` and proxies API requests to `http:/
 ### 3. Database & Storage Setup
 
 Open your Supabase project's SQL Editor and execute `server/src/db/schema.sql` to create all tables, indexes, RLS policies, and the `nominee-images` storage bucket.
+
+---
+
+## M-Pesa Payment Gateway (PayHero v2)
+
+The application integrates with **PayHero Kenya** for M-Pesa STK push voting collections:
+
+### Configuration (`server/.env`):
+```env
+PAYMENT_GATEWAY=payhero
+PAYHERO_API_URL=https://backend.payhero.co.ke/api/v2
+PAYHERO_API_USERNAME=your_username
+PAYHERO_API_PASSWORD=your_password
+PAYHERO_ACCOUNT_ID=your_account_id
+PAYHERO_CHANNEL_ID=your_channel_id
+PAYHERO_CALLBACK_URL=https://dekutsochoiceawards.site/api/votes/webhook
+```
+
+### Endpoints:
+- `POST /api/votes/initiate`: Triggers an M-Pesa STK Push prompt to the voter's phone.
+- `GET /api/votes/status/:reference`: Checks live payment resolution and credits nominee points.
+- `POST /api/votes/webhook`: Receives instant IPN payment confirmations from PayHero.
+
+For full implementation guide and architecture, see the [`payhero-mpesa-sdk` Skill](file:///c:/antigravity/.agents/skills/payhero-mpesa-sdk/SKILL.md).
