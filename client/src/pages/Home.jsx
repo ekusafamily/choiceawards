@@ -146,7 +146,6 @@ export default function Home() {
       <StatsBar
         categoriesCount={stats.categoriesCount || categories.length}
         nomineesCount={stats.nomineesCount}
-        votesCount={stats.votesCount}
       />
 
       {/* Prominent Search Bar Section */}
