@@ -87,11 +87,11 @@ export default function CountdownStickyFooter() {
               <p className="countdown-sub-title">
                 {timeLeft.isEnded ? (
                   <span>
-                    Polls officially closed on <strong>Tuesday, Oct 20 at Midnight (EAT)</strong> • Ranks are preserved while final tallies are audited.
+                    Polls officially closed on <strong>Tuesday, Oct 20 at {targetDateStr.includes('23:59') ? 'Midnight' : '11:00 PM'} (EAT)</strong> • Ranks are preserved while final tallies are audited.
                   </span>
                 ) : (
                   <span>
-                    Deadline: <strong>Tuesday, Oct 20 at Midnight (EAT)</strong> • Vote in all categories!
+                    Deadline: <strong>Tuesday, Oct 20 at {targetDateStr.includes('23:59') ? 'Midnight' : '11:00 PM'} (EAT)</strong> • Vote in all categories!
                   </span>
                 )}
               </p>

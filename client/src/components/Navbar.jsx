@@ -3,8 +3,10 @@ import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { Search, X, Menu, User, Award, ChevronRight } from 'lucide-react';
 import apiClient from '../api/client';
 import { openContactDrawer } from './ContactDrawer';
+import { useVotingStatus } from '../utils/votingDeadline';
 
 export default function Navbar() {
+  const { isVotingClosed } = useVotingStatus();
   const [open, setOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -179,58 +181,49 @@ export default function Navbar() {
               Nominees
             </NavLink>
           </li>
-          {/* Results tab hidden - will come later */}
-          {/* <li>
-            <NavLink
-              to="/results"
-              onClick={() => {
-                setOpen(false);
-                setSearchOpen(false);
-              }}
-              id="navbar-results-link"
-            >
-              Results
-            </NavLink>
-          </li> */}
-          <li>
-            <NavLink
-              to="/successful-nominations"
-              onClick={() => {
-                setOpen(false);
-                setSearchOpen(false);
-              }}
-              id="navbar-successful-nominations-link"
-            >
-              Successful Nominations
-            </NavLink>
-          </li>
-          <li>
-            <button
-              type="button"
-              className="navbar-contact-link-btn"
-              onClick={() => {
-                setOpen(false);
-                setSearchOpen(false);
-                openContactDrawer();
-              }}
-              id="navbar-contact-btn"
-            >
-              Contact Us
-            </button>
-          </li>
-          <li>
-            <NavLink
-              to="/nominate"
-              className="navbar-cta"
-              onClick={() => {
-                setOpen(false);
-                setSearchOpen(false);
-              }}
-              id="navbar-nominate-btn"
-            >
-              Nominate
-            </NavLink>
-          </li>
+          {!isVotingClosed && (
+            <>
+              <li>
+                <NavLink
+                  to="/successful-nominations"
+                  onClick={() => {
+                    setOpen(false);
+                    setSearchOpen(false);
+                  }}
+                  id="navbar-successful-nominations-link"
+                >
+                  Successful Nominations
+                </NavLink>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  className="navbar-contact-link-btn"
+                  onClick={() => {
+                    setOpen(false);
+                    setSearchOpen(false);
+                    openContactDrawer();
+                  }}
+                  id="navbar-contact-btn"
+                >
+                  Contact Us
+                </button>
+              </li>
+              <li>
+                <NavLink
+                  to="/nominate"
+                  className="navbar-cta"
+                  onClick={() => {
+                    setOpen(false);
+                    setSearchOpen(false);
+                  }}
+                  id="navbar-nominate-btn"
+                >
+                  Nominate
+                </NavLink>
+              </li>
+            </>
+          )}
         </ul>
       </div>
 

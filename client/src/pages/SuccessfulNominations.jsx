@@ -5,6 +5,7 @@ import {
   X, Trophy
 } from 'lucide-react';
 import apiClient from '../api/client';
+import { useVotingStatus } from '../utils/votingDeadline';
 
 function WhatsAppIcon({ size = 16, className = '' }) {
   return (
@@ -22,6 +23,7 @@ function WhatsAppIcon({ size = 16, className = '' }) {
 }
 
 export default function SuccessfulNominations() {
+  const { isVotingClosed } = useVotingStatus();
   const [nominees, setNominees] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -89,7 +91,8 @@ export default function SuccessfulNominations() {
           <h2>Successful Nominations</h2>
           <hr className="gold-line" />
           <p>
-            Official directory of candidates whose nominations have been reviewed and approved by the DeKUTSO Awards Committee. Voting will commence soon!
+            Official directory of candidates whose nominations have been reviewed and approved by the DeKUTSO Awards Committee.
+            {isVotingClosed ? ' Voting has officially concluded.' : ' Cast your vote before polls close!'}
           </p>
         </div>
 
@@ -190,14 +193,16 @@ export default function SuccessfulNominations() {
                 </Link>
 
                 <div className="nominee-card-vote successful-nom-actions">
-                  <Link
-                    to={`/nominees/${nom.id}`}
-                    className="btn btn-gold btn-sm"
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: 6, textDecoration: 'none' }}
-                  >
-                    <Trophy size={13} />
-                    <span>Vote</span>
-                  </Link>
+                  {!isVotingClosed && (
+                    <Link
+                      to={`/nominees/${nom.id}`}
+                      className="btn btn-gold btn-sm"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: 6, textDecoration: 'none' }}
+                    >
+                      <Trophy size={13} />
+                      <span>Vote</span>
+                    </Link>
+                  )}
                   <div className="successful-nom-action-row">
                     <button
                       type="button"
@@ -241,9 +246,11 @@ export default function SuccessfulNominations() {
                   Reset Filters
                 </button>
               )}
-              <Link to="/nominate" className="btn btn-gold btn-sm">
-                Nominate a Comrade Now
-              </Link>
+              {!isVotingClosed && (
+                <Link to="/nominate" className="btn btn-gold btn-sm">
+                  Nominate a Comrade Now
+                </Link>
+              )}
             </div>
           </div>
         )}
