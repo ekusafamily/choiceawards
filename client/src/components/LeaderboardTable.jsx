@@ -1,7 +1,10 @@
 import { Link } from 'react-router-dom';
-import { User, Trophy } from 'lucide-react';
+import { User, Trophy, Lock } from 'lucide-react';
+import { useVotingStatus } from '../utils/votingDeadline';
 
 export default function LeaderboardTable({ nominees = [], categoryName = '', onVote }) {
+  const { isVotingClosed } = useVotingStatus();
+
   if (nominees.length === 0) {
     return (
       <div className="leaderboard">
@@ -18,7 +21,14 @@ export default function LeaderboardTable({ nominees = [], categoryName = '', onV
   return (
     <div className="leaderboard" id="leaderboard">
       <div className="leaderboard-header">
-        <h3>{categoryName}</h3>
+        <div>
+          <h3>{categoryName}</h3>
+          {isVotingClosed && (
+            <span style={{ fontSize: '0.78rem', color: 'var(--color-gold)', display: 'block', marginTop: 2 }}>
+              <Lock size={12} className="inline-icon" /> Voting closed • Ranks preserved, points hidden for audit
+            </span>
+          )}
+        </div>
         <span style={{ fontSize: '0.85rem', opacity: 0.7 }}>
           {nominees.length} {nominees.length === 1 ? 'nominee' : 'nominees'}
         </span>
@@ -28,7 +38,7 @@ export default function LeaderboardTable({ nominees = [], categoryName = '', onV
           <tr>
             <th style={{ width: '60px', textAlign: 'center' }}>Pos</th>
             <th>Nominee</th>
-            <th style={{ textAlign: 'right' }}>Points</th>
+            <th style={{ textAlign: 'right' }}>{isVotingClosed ? 'Tallies' : 'Points'}</th>
             {onVote && <th style={{ width: '100px', textAlign: 'center' }}>Vote</th>}
           </tr>
         </thead>
@@ -77,18 +87,40 @@ export default function LeaderboardTable({ nominees = [], categoryName = '', onV
                   </Link>
                 </td>
                 <td className="points-cell">
-                  {(nominee.total_points || 0).toLocaleString()}
+                  {isVotingClosed ? (
+                    <span className="points-hidden-badge" title="Point counts are hidden while final tallies are audited">
+                      <Lock size={12} className="inline-icon" /> Locked
+                    </span>
+                  ) : (
+                    (nominee.total_points || 0).toLocaleString()
+                  )}
                 </td>
                 {onVote && (
                   <td style={{ textAlign: 'center' }}>
-                    <button
-                      className="btn btn-gold btn-sm leaderboard-vote-btn"
-                      onClick={() => onVote(nominee)}
-                      id={`lb-vote-btn-${nominee.id}`}
-                    >
-                      <Trophy size={12} />
-                      Vote
-                    </button>
+                    {isVotingClosed ? (
+                      <span
+                        className="nominee-vote-btn is-closed"
+                        style={{
+                          fontSize: '0.75rem',
+                          padding: '4px 8px',
+                          borderRadius: 6,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4,
+                        }}
+                      >
+                        <Lock size={11} /> Closed
+                      </span>
+                    ) : (
+                      <button
+                        className="btn btn-gold btn-sm leaderboard-vote-btn"
+                        onClick={() => onVote(nominee)}
+                        id={`lb-vote-btn-${nominee.id}`}
+                      >
+                        <Trophy size={12} />
+                        Vote
+                      </button>
+                    )}
                   </td>
                 )}
               </tr>

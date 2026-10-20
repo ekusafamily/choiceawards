@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Lock } from 'lucide-react';
 import apiClient from '../api/client';
 import NomineeCard from '../components/NomineeCard';
 import LeaderboardTable from '../components/LeaderboardTable';
 import VoteModal from '../components/VoteModal';
+import { useVotingStatus } from '../utils/votingDeadline';
 
 export default function CategoryDetail() {
   const { slug } = useParams();
+  const { isVotingClosed } = useVotingStatus();
   const [category, setCategory] = useState(null);
   const [nominees, setNominees] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -133,6 +135,31 @@ export default function CategoryDetail() {
           </div>
         )}
 
+        {isVotingClosed && (
+          <div
+            style={{
+              padding: 'var(--space-md) var(--space-lg)',
+              background: 'rgba(212, 160, 23, 0.1)',
+              border: '1px solid var(--color-gold)',
+              borderRadius: 'var(--radius-md)',
+              marginBottom: 'var(--space-xl)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+            }}
+          >
+            <Lock size={18} style={{ color: 'var(--color-gold)', flexShrink: 0 }} />
+            <div>
+              <strong style={{ color: 'var(--color-gold)', display: 'block' }}>
+                Voting Concluded for {category.name}
+              </strong>
+              <span style={{ fontSize: '0.88rem', opacity: 0.85 }}>
+                Polls closed on Tuesday, Oct 20 at Midnight (EAT). Category standings are preserved while final tallies are audited.
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* View Toggle */}
         <div
           style={{
@@ -159,16 +186,16 @@ export default function CategoryDetail() {
           <LeaderboardTable
             nominees={rankedNominees}
             categoryName={category.name}
-            onVote={(nominee) => setVotingFor(nominee)}
+            onVote={isVotingClosed ? null : (nominee) => setVotingFor(nominee)}
           />
         ) : (
           nominees.length > 0 ? (
             <div className="nominees-grid">
-              {nominees.map((n) => (
+              {rankedNominees.map((n) => (
                 <NomineeCard
                   key={n.id}
                   nominee={n}
-                  onVote={(nominee) => setVotingFor(nominee)}
+                  onVote={isVotingClosed ? null : (nominee) => setVotingFor(nominee)}
                 />
               ))}
             </div>

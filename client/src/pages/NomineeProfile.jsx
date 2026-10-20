@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, BookOpen, Trophy, User, Copy, Check, Clock } from 'lucide-react';
+import { ArrowLeft, BookOpen, Trophy, User, Copy, Check, Clock, Lock } from 'lucide-react';
 import apiClient from '../api/client';
 import VoteModal from '../components/VoteModal';
+import { useVotingStatus } from '../utils/votingDeadline';
 
 export default function NomineeProfile() {
   const { id } = useParams();
+  const { isVotingClosed } = useVotingStatus();
   const [nominee, setNominee] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showVoteModal, setShowVoteModal] = useState(false);
@@ -218,20 +220,46 @@ export default function NomineeProfile() {
               <Trophy size={24} />
               <div>
                 <span className="points-num">
-                  {(nominee.total_points || 0).toLocaleString()}
+                  {isVotingClosed ? (
+                    <span style={{ fontSize: '1.2rem', display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--color-gold)' }}>
+                      <Lock size={16} /> Sealed
+                    </span>
+                  ) : (
+                    (nominee.total_points || 0).toLocaleString()
+                  )}
                 </span>
-                <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>points</span>
+                <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>
+                  {isVotingClosed ? 'official audit' : 'points'}
+                </span>
               </div>
             </div>
 
             <div style={{ display: 'flex', gap: 'var(--space-sm)', flexWrap: 'wrap', alignItems: 'center' }}>
-              <button
-                className="btn btn-gold"
-                onClick={() => setShowVoteModal(true)}
-                id="profile-vote-btn"
-              >
-                Vote for {nominee.name.split(' ')[0]}
-              </button>
+              {isVotingClosed ? (
+                <button
+                  className="btn btn-secondary"
+                  disabled
+                  style={{
+                    opacity: 0.75,
+                    cursor: 'not-allowed',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                  }}
+                  title="Voting closed at Tuesday midnight"
+                >
+                  <Lock size={16} />
+                  Voting Concluded
+                </button>
+              ) : (
+                <button
+                  className="btn btn-gold"
+                  onClick={() => setShowVoteModal(true)}
+                  id="profile-vote-btn"
+                >
+                  Vote for {nominee.name.split(' ')[0]}
+                </button>
+              )}
 
               <div className="profile-share" style={{ marginTop: 0 }}>
                 <button

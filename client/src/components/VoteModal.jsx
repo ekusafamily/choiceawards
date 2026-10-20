@@ -5,6 +5,7 @@ import {
   Mail, Lock
 } from 'lucide-react';
 import apiClient from '../api/client';
+import { useVotingStatus } from '../utils/votingDeadline';
 
 const BALLOT_AMOUNT = 10; // Fixed KSh 10 per category
 const BALLOT_POINTS = 10; // Fixed 10 points per vote
@@ -88,6 +89,7 @@ function validateStudentEmail(em) {
 }
 
 export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
+  const { isVotingClosed } = useVotingStatus();
   // Voter credentials state
   const [email, setEmail] = useState(() => localStorage.getItem('cca_voter_email') || '');
   const [phone, setPhone] = useState(() => localStorage.getItem('cca_voter_phone') || '');
@@ -250,6 +252,11 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
   async function handleInitiate(e) {
     e.preventDefault();
     setError('');
+
+    if (isVotingClosed) {
+      setError('Voting has officially concluded. Polls closed at midnight.');
+      return;
+    }
 
     const emailError = validateStudentEmail(email);
     if (emailError) {
@@ -473,6 +480,30 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
                 </div>
               </div>
 
+              {isVotingClosed && (
+                <div
+                  style={{
+                    background: '#FFF5F5',
+                    border: '1px solid #FEB2B2',
+                    borderRadius: '10px',
+                    padding: '12px 14px',
+                    marginTop: '14px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    color: '#C53030',
+                  }}
+                >
+                  <Lock size={18} style={{ flexShrink: 0 }} />
+                  <div>
+                    <strong style={{ display: 'block', fontSize: '0.88rem' }}>Voting Concluded</strong>
+                    <span style={{ fontSize: '0.78rem' }}>
+                      Polls officially closed on Tuesday, Oct 20 at Midnight (EAT). Ballots are now locked.
+                    </span>
+                  </div>
+                </div>
+              )}
+
               {/* Fixed 1 Vote Ballot Policy Card (Solid background, never transparent) */}
               <div
                 className="voter-ballot-card"
@@ -614,17 +645,38 @@ export default function VoteModal({ nominee, onClose, onVote, onSuccess }) {
             {/* Modal Actions */}
             {!alreadyVoted && (
               <div className="modal-footer voter-modal-footer">
-                <button
-                  type="submit"
-                  className="btn btn-gold btn-lg voter-confirm-btn"
-                  id="vote-submit-btn"
-                  disabled={checkingEligibility || alreadyVoted}
-                  style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-                >
-                  <CheckCircle2 size={18} /> Pay KES {BALLOT_AMOUNT} & Cast Ballot
-                </button>
+                {isVotingClosed ? (
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-lg"
+                    disabled
+                    style={{
+                      width: '100%',
+                      opacity: 0.75,
+                      cursor: 'not-allowed',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                    }}
+                  >
+                    <Lock size={18} /> Voting Concluded (Polls Closed)
+                  </button>
+                ) : (
+                  <button
+                    type="submit"
+                    className="btn btn-gold btn-lg voter-confirm-btn"
+                    id="vote-submit-btn"
+                    disabled={checkingEligibility || alreadyVoted}
+                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                  >
+                    <CheckCircle2 size={18} /> Pay KES {BALLOT_AMOUNT} & Cast Ballot
+                  </button>
+                )}
                 <p className="voter-ballot-notice" style={{ marginTop: '8px' }}>
-                  Secure PayHero M-Pesa • 1 Vote per Category per Student
+                  {isVotingClosed
+                    ? 'Polls closed on Tuesday, Oct 20 at Midnight (EAT)'
+                    : 'Secure PayHero M-Pesa • 1 Vote per Category per Student'}
                 </p>
               </div>
             )}

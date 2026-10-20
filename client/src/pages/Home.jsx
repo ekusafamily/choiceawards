@@ -6,9 +6,11 @@ import LandingSearchBar from '../components/LandingSearchBar';
 import CategoryCard from '../components/CategoryCard';
 import NomineeCard from '../components/NomineeCard';
 import VoteModal from '../components/VoteModal';
-import { Target, CheckCircle2, Globe, Sparkles, HeartHandshake, Award, User, X } from 'lucide-react';
+import { Target, CheckCircle2, Globe, Sparkles, HeartHandshake, Award, User, X, Lock } from 'lucide-react';
+import { useVotingStatus } from '../utils/votingDeadline';
 
 export default function Home() {
+  const { isVotingClosed } = useVotingStatus();
   const [categories, setCategories] = useState([]);
   const [allNominees, setAllNominees] = useState([]);
   const [stats, setStats] = useState({ categoriesCount: 26, nomineesCount: 0, votesCount: 0 });
@@ -153,7 +155,7 @@ export default function Home() {
         categories={categories}
         nominees={allNominees}
         nomineeCountMap={nomineeCountMap}
-        onVote={(nom) => setVotingNominee(nom)}
+        onVote={isVotingClosed ? null : (nom) => setVotingNominee(nom)}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
       />
@@ -201,7 +203,7 @@ export default function Home() {
                     <NomineeCard
                       key={nom.id}
                       nominee={nom}
-                      onVote={(n) => setVotingNominee(n)}
+                      onVote={isVotingClosed ? null : (n) => setVotingNominee(n)}
                     />
                   ))}
                 </div>

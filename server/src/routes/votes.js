@@ -7,6 +7,15 @@ const pendingVotes = require('../services/pendingVotes');
 
 const router = express.Router();
 
+// Official Voting Deadline: Tuesday, October 20, 2026 at 23:59:59 EAT (Nairobi UTC+3)
+const VOTING_DEADLINE_ISO = process.env.VOTING_DEADLINE || '2026-10-20T23:59:59+03:00';
+
+function isVotingClosed() {
+  const deadline = new Date(VOTING_DEADLINE_ISO).getTime();
+  if (isNaN(deadline)) return false;
+  return Date.now() >= deadline;
+}
+
 function getGateway() {
   return (process.env.PAYMENT_GATEWAY || 'payhero').toLowerCase();
 }
@@ -138,6 +147,15 @@ async function fulfillVote(reference, statusResult) {
 // GET /api/votes/check-eligibility - Verify DeKUT student email and ensure 1 vote per category
 router.get('/check-eligibility', async (req, res) => {
   try {
+    if (isVotingClosed()) {
+      return res.json({
+        eligible: false,
+        hasVoted: false,
+        votingClosed: true,
+        message: 'Voting has officially concluded as of Tuesday midnight (23:59:59 EAT). Polls are now closed.',
+      });
+    }
+
     const { email, category_id } = req.query;
 
     if (!email) {
@@ -203,6 +221,15 @@ router.get('/voted-categories', (req, res) => {
 // POST /api/votes/initiate - Initiate an M-Pesa STK Push for 10 KES (1 vote per category per student)
 router.post('/initiate', async (req, res, next) => {
   try {
+    if (isVotingClosed()) {
+      return res.status(403).json({
+        error: {
+          message: 'Voting has officially concluded as of Tuesday midnight, October 20th (23:59:59 EAT). No further votes can be accepted.',
+          votingClosed: true,
+        },
+      });
+    }
+
     const { nominee_id, category_id, email, phone, nominee_name } = req.body;
 
     if (!nominee_id || !category_id || !phone || !email) {

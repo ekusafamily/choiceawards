@@ -4,8 +4,9 @@ import {
   Search, X, User, Award, Trophy, ChevronRight,
   Sparkles, Shield, Users, Star, Palette, Code,
   Camera, Megaphone, ArrowUpRight, Clock, Music, Crown,
-  Flame, Mic2, Feather
+  Flame, Mic2, Feather, Lock
 } from 'lucide-react';
+import { useVotingStatus } from '../utils/votingDeadline';
 
 const CATEGORY_ICON_MAP = {
   'tech-developer': Code,
@@ -53,6 +54,7 @@ export default function LandingSearchBar({
   searchQuery = '',
   onSearchChange,
 }) {
+  const { isVotingClosed } = useVotingStatus();
   const [internalQuery, setInternalQuery] = useState(searchQuery);
   const [isOpen, setIsOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState('all'); // 'all' | 'nominees' | 'categories'
@@ -283,8 +285,16 @@ export default function LandingSearchBar({
                                   <span>{nom.course || 'DeKUT Student'}</span>
                                   {nom.total_points !== undefined && (
                                     <span className="landing-search-points">
-                                      <Trophy size={12} color="var(--color-accent)" />
-                                      {(nom.total_points || 0).toLocaleString()} pts
+                                      {isVotingClosed ? (
+                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, opacity: 0.85 }}>
+                                          <Lock size={11} color="var(--color-gold)" /> Sealed
+                                        </span>
+                                      ) : (
+                                        <>
+                                          <Trophy size={12} color="var(--color-accent)" />
+                                          {(nom.total_points || 0).toLocaleString()} pts
+                                        </>
+                                      )}
                                     </span>
                                   )}
                                 </div>
@@ -293,18 +303,34 @@ export default function LandingSearchBar({
 
                             <div className="landing-search-item-actions">
                               {onVote && (
-                                <button
-                                  type="button"
-                                  className="btn btn-gold btn-sm landing-search-vote-btn"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setIsOpen(false);
-                                    onVote(nom);
-                                  }}
-                                  title={`Vote for ${nom.name}`}
-                                >
-                                  <Trophy size={13} /> Vote
-                                </button>
+                                isVotingClosed ? (
+                                  <span
+                                    className="nominee-vote-btn is-closed"
+                                    style={{
+                                      fontSize: '0.75rem',
+                                      padding: '4px 8px',
+                                      borderRadius: 6,
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: 4,
+                                    }}
+                                  >
+                                    <Lock size={11} /> Closed
+                                  </span>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    className="btn btn-gold btn-sm landing-search-vote-btn"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setIsOpen(false);
+                                      onVote(nom);
+                                    }}
+                                    title={`Vote for ${nom.name}`}
+                                  >
+                                    <Trophy size={13} /> Vote
+                                  </button>
+                                )
                               )}
                               <Link
                                 to={`/nominees/${nom.id}`}

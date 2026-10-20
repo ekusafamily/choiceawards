@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import apiClient from '../api/client';
-import { Trophy, Medal, Star, User, Award, ChevronRight } from 'lucide-react';
+import { Trophy, Medal, Star, User, Award, ChevronRight, Lock } from 'lucide-react';
+import { useVotingStatus } from '../utils/votingDeadline';
 
 const POSITION_LABELS = ['1st Place', '2nd Place', '3rd Place'];
 const POSITION_COLORS = [
@@ -10,7 +11,7 @@ const POSITION_COLORS = [
   { border: '#CD7F32', cardClass: 'podium-bronze', badgeBg: '#CD7F32', badgeColor: '#FFFFFF' },
 ];
 
-function PodiumCard({ nominee, rank }) {
+function PodiumCard({ nominee, rank, isVotingClosed }) {
   const scheme = POSITION_COLORS[rank] ?? POSITION_COLORS[2];
   return (
     <Link
@@ -43,14 +44,23 @@ function PodiumCard({ nominee, rank }) {
       )}
 
       <div className="podium-points-pill">
-        <Trophy size={14} />
-        <span>{(nominee.total_points ?? 0).toLocaleString()} pts</span>
+        {isVotingClosed ? (
+          <>
+            <Lock size={13} />
+            <span>Points Sealed</span>
+          </>
+        ) : (
+          <>
+            <Trophy size={14} />
+            <span>{(nominee.total_points ?? 0).toLocaleString()} pts</span>
+          </>
+        )}
       </div>
     </Link>
   );
 }
 
-function NomineeRow({ nominee, rank }) {
+function NomineeRow({ nominee, rank, isVotingClosed }) {
   return (
     <Link
       to={`/nominees/${nominee.id}`}
@@ -77,8 +87,16 @@ function NomineeRow({ nominee, rank }) {
       </div>
 
       <div className="nominee-row-points">
-        <Trophy size={13} />
-        <span>{(nominee.total_points ?? 0).toLocaleString()}</span>
+        {isVotingClosed ? (
+          <span style={{ fontSize: '0.8rem', opacity: 0.8, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            <Lock size={12} /> Sealed
+          </span>
+        ) : (
+          <>
+            <Trophy size={13} />
+            <span>{(nominee.total_points ?? 0).toLocaleString()}</span>
+          </>
+        )}
       </div>
 
       <ChevronRight size={16} className="nominee-row-chevron" />
@@ -87,6 +105,7 @@ function NomineeRow({ nominee, rank }) {
 }
 
 export default function TopNominees() {
+  const { isVotingClosed } = useVotingStatus();
   const [nominees, setNominees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -119,7 +138,9 @@ export default function TopNominees() {
             <div>
               <h1>Top Nominees</h1>
               <p className="top-nominees-subtitle">
-                Leading the race — ranked by total community votes
+                {isVotingClosed
+                  ? 'Official voting closed • Ranks are preserved while final tallies are audited for the gala ceremony'
+                  : 'Leading the race — ranked by total community votes'}
               </p>
             </div>
           </div>
@@ -156,7 +177,12 @@ export default function TopNominees() {
                 </h2>
                 <div className="top-nominees-podium-grid">
                   {podium.map((nom, i) => (
-                    <PodiumCard key={nom.id} nominee={nom} rank={i} />
+                    <PodiumCard
+                      key={nom.id}
+                      nominee={nom}
+                      rank={i}
+                      isVotingClosed={isVotingClosed}
+                    />
                   ))}
                 </div>
               </section>
@@ -169,7 +195,12 @@ export default function TopNominees() {
                 </h2>
                 <div className="top-nominees-list">
                   {rest.map((nom, i) => (
-                    <NomineeRow key={nom.id} nominee={nom} rank={i + 4} />
+                    <NomineeRow
+                      key={nom.id}
+                      nominee={nom}
+                      rank={i + 4}
+                      isVotingClosed={isVotingClosed}
+                    />
                   ))}
                 </div>
               </section>

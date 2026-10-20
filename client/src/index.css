@@ -5279,6 +5279,54 @@ textarea.form-control {
   letter-spacing: 0.5px;
 }
 
+.countdown-sticky-footer.is-polls-closed {
+  background: linear-gradient(90deg, rgba(17, 24, 39, 0.98) 0%, rgba(30, 27, 46, 0.98) 50%, rgba(17, 24, 39, 0.98) 100%);
+  border-top: 2px solid var(--color-gold);
+  box-shadow: 0 -8px 32px rgba(212, 160, 23, 0.25), 0 -1px 12px rgba(212, 160, 23, 0.35);
+}
+
+.countdown-sticky-badge-closed {
+  background: rgba(212, 160, 23, 0.16) !important;
+  border-color: rgba(212, 160, 23, 0.5) !important;
+  color: var(--color-gold) !important;
+}
+
+.countdown-closed-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: rgba(212, 160, 23, 0.14);
+  border: 1px solid rgba(212, 160, 23, 0.4);
+  border-radius: 9999px;
+  color: #fef08a;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.points-hidden-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  background: rgba(212, 160, 23, 0.12);
+  border: 1px solid rgba(212, 160, 23, 0.35);
+  border-radius: 9999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-gold);
+}
+
+.nominee-vote-btn.is-closed {
+  opacity: 0.65;
+  cursor: not-allowed;
+  pointer-events: none;
+  background: rgba(148, 163, 184, 0.12) !important;
+  border: 1px solid rgba(148, 163, 184, 0.25) !important;
+  color: #94a3b8 !important;
+}
+
 /* Right: Action Buttons & Minimize */
 .countdown-sticky-right {
   display: flex;

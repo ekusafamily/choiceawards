@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Clock, Sparkles, ChevronDown, ChevronUp, Trophy } from 'lucide-react';
-
-// Default fallback deadline: Tuesday, October 20, 2026 at 23:59:59 EAT (Kenyan time)
-const DEFAULT_VOTING_DEADLINE = '2026-10-20T23:59:59+03:00';
+import { Clock, Sparkles, ChevronDown, ChevronUp, Trophy, Lock, CheckCircle2 } from 'lucide-react';
+import { VOTING_DEADLINE_ISO, isVotingClosed } from '../utils/votingDeadline';
 
 function padZero(num) {
   return String(Math.max(0, num)).padStart(2, '0');
@@ -11,10 +9,7 @@ function padZero(num) {
 
 export default function CountdownStickyFooter() {
   const location = useLocation();
-
-  // Read target date from .env (Vite client env variable)
-  const targetDateStr =
-    import.meta.env.VITE_VOTING_DEADLINE || DEFAULT_VOTING_DEADLINE;
+  const targetDateStr = VOTING_DEADLINE_ISO;
 
   const [timeLeft, setTimeLeft] = useState(() => calculateTimeLeft(targetDateStr));
   const [isMinimized, setIsMinimized] = useState(false);
@@ -37,7 +32,7 @@ export default function CountdownStickyFooter() {
   }
 
   useEffect(() => {
-    // If deadline has passed, stop timer
+    // If deadline has passed, no need to tick down
     if (timeLeft.isEnded) return;
 
     const timer = setInterval(() => {
@@ -56,81 +51,111 @@ export default function CountdownStickyFooter() {
     return null;
   }
 
-  // Once countdown is done (deadline reached), disappear completely from the UI
-  if (timeLeft.isEnded) {
-    return null;
-  }
-
   return (
     <>
       {/* Spacer so bottom page content / footer is not blocked by sticky bar */}
       <div className={`countdown-sticky-spacer ${isMinimized ? 'minimized' : ''}`} />
 
       <aside
-        className={`countdown-sticky-footer ${isMinimized ? 'is-minimized' : ''}`}
-        aria-label="Voting Deadline Countdown Bar"
+        className={`countdown-sticky-footer ${timeLeft.isEnded ? 'is-polls-closed' : ''} ${
+          isMinimized ? 'is-minimized' : ''
+        }`}
+        aria-label="Voting Deadline Status Bar"
         id="voting-countdown-bar"
       >
         <div className="countdown-sticky-inner container">
           {/* Left: Indicator & Headline */}
           <div className="countdown-sticky-left">
-            <div className="countdown-sticky-badge">
-              <span className="countdown-pulse-ring" />
-              <span className="countdown-pulse-dot" />
-              <span className="countdown-badge-text">
-                <Clock size={13} className="inline-icon" /> Voting Deadline
-              </span>
-            </div>
+            {timeLeft.isEnded ? (
+              <div className="countdown-sticky-badge countdown-sticky-badge-closed">
+                <Lock size={13} className="inline-icon" /> Polls Closed
+              </div>
+            ) : (
+              <div className="countdown-sticky-badge">
+                <span className="countdown-pulse-ring" />
+                <span className="countdown-pulse-dot" />
+                <span className="countdown-badge-text">
+                  <Clock size={13} className="inline-icon" /> Voting Deadline
+                </span>
+              </div>
+            )}
 
             <div className="countdown-sticky-titles">
-              <h4 className="countdown-main-title">Voting Closes In</h4>
+              <h4 className="countdown-main-title">
+                {timeLeft.isEnded ? 'Voting Has Concluded' : 'Voting Closes In'}
+              </h4>
               <p className="countdown-sub-title">
-                Deadline: <strong>Tuesday, Oct 20 at Midnight (EAT)</strong> • Vote in all categories!
+                {timeLeft.isEnded ? (
+                  <span>
+                    Polls officially closed on <strong>Tuesday, Oct 20 at Midnight (EAT)</strong> • Ranks are preserved while final tallies are audited.
+                  </span>
+                ) : (
+                  <span>
+                    Deadline: <strong>Tuesday, Oct 20 at Midnight (EAT)</strong> • Vote in all categories!
+                  </span>
+                )}
               </p>
             </div>
           </div>
 
-          {/* Center: Flip/Digit Countdown Grid */}
+          {/* Center: Flip/Digit Countdown Grid OR Closed Notice */}
           <div className="countdown-sticky-center">
-            <div className="countdown-digits-grid">
-              <div className="countdown-digit-box">
-                <span className="countdown-digit-num">{padZero(timeLeft.days)}</span>
-                <span className="countdown-digit-lbl">Days</span>
+            {timeLeft.isEnded ? (
+              <div className="countdown-closed-tag">
+                <Sparkles size={14} style={{ color: 'var(--color-gold)' }} />
+                <span>Auditing & Verification In Progress</span>
               </div>
-              <span className="countdown-digit-separator">:</span>
-              <div className="countdown-digit-box">
-                <span className="countdown-digit-num">{padZero(timeLeft.hours)}</span>
-                <span className="countdown-digit-lbl">Hours</span>
+            ) : (
+              <div className="countdown-digits-grid">
+                <div className="countdown-digit-box">
+                  <span className="countdown-digit-num">{padZero(timeLeft.days)}</span>
+                  <span className="countdown-digit-lbl">Days</span>
+                </div>
+                <span className="countdown-digit-separator">:</span>
+                <div className="countdown-digit-box">
+                  <span className="countdown-digit-num">{padZero(timeLeft.hours)}</span>
+                  <span className="countdown-digit-lbl">Hours</span>
+                </div>
+                <span className="countdown-digit-separator">:</span>
+                <div className="countdown-digit-box">
+                  <span className="countdown-digit-num">{padZero(timeLeft.minutes)}</span>
+                  <span className="countdown-digit-lbl">Mins</span>
+                </div>
+                <span className="countdown-digit-separator">:</span>
+                <div className="countdown-digit-box countdown-digit-box-highlight">
+                  <span className="countdown-digit-num">{padZero(timeLeft.seconds)}</span>
+                  <span className="countdown-digit-lbl">Secs</span>
+                </div>
               </div>
-              <span className="countdown-digit-separator">:</span>
-              <div className="countdown-digit-box">
-                <span className="countdown-digit-num">{padZero(timeLeft.minutes)}</span>
-                <span className="countdown-digit-lbl">Mins</span>
-              </div>
-              <span className="countdown-digit-separator">:</span>
-              <div className="countdown-digit-box countdown-digit-box-highlight">
-                <span className="countdown-digit-num">{padZero(timeLeft.seconds)}</span>
-                <span className="countdown-digit-lbl">Secs</span>
-              </div>
-            </div>
+            )}
           </div>
 
           {/* Right: Actions & Minimize Button */}
           <div className="countdown-sticky-right">
             <div className="countdown-cta-group">
+              {timeLeft.isEnded ? (
+                <Link
+                  to="/nominees"
+                  className="btn btn-gold btn-sm countdown-cta-btn"
+                  id="countdown-leaderboard-btn"
+                >
+                  <Trophy size={14} /> View Ranks
+                </Link>
+              ) : (
+                <Link
+                  to="/categories"
+                  className="btn btn-gold btn-sm countdown-cta-btn"
+                  id="countdown-vote-btn"
+                >
+                  <Sparkles size={14} /> Vote Now
+                </Link>
+              )}
               <Link
-                to="/categories"
-                className="btn btn-gold btn-sm countdown-cta-btn"
-                id="countdown-vote-btn"
-              >
-                <Sparkles size={14} /> Vote Now
-              </Link>
-              <Link
-                to="/nominees"
+                to={timeLeft.isEnded ? '/categories' : '/nominees'}
                 className="countdown-secondary-link"
                 id="countdown-view-nominees-btn"
               >
-                <Trophy size={14} /> Nominees
+                {timeLeft.isEnded ? 'Categories' : <><Trophy size={14} /> Nominees</>}
               </Link>
             </div>
 
@@ -139,8 +164,8 @@ export default function CountdownStickyFooter() {
               type="button"
               className="countdown-minimize-btn"
               onClick={() => setIsMinimized((prev) => !prev)}
-              aria-label={isMinimized ? 'Expand countdown bar' : 'Minimize countdown bar'}
-              title={isMinimized ? 'Expand countdown bar' : 'Minimize countdown bar'}
+              aria-label={isMinimized ? 'Expand status bar' : 'Minimize status bar'}
+              title={isMinimized ? 'Expand status bar' : 'Minimize status bar'}
             >
               {isMinimized ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
             </button>
