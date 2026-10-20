@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 
-// Simulation: Voting ends at 11:35 PM EAT tonight (Tuesday, October 20, 2026)
-export const DEFAULT_VOTING_DEADLINE = '2026-10-20T23:35:00+03:00';
+// Official Cutoff: Voting concludes Tuesday midnight at 23:59:59 EAT (October 20, 2026)
+export const DEFAULT_VOTING_DEADLINE = '2026-10-20T23:59:59+03:00';
 
 export const VOTING_DEADLINE_ISO =
   import.meta.env.VITE_VOTING_DEADLINE || DEFAULT_VOTING_DEADLINE;
