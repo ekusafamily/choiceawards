@@ -7,6 +7,16 @@ function padZero(num) {
   return String(Math.max(0, num)).padStart(2, '0');
 }
 
+function formatDeadlineTime(dateStr) {
+  if (dateStr.includes('23:59')) return 'Midnight';
+  try {
+    const d = new Date(dateStr);
+    return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+  } catch {
+    return '11:20 PM';
+  }
+}
+
 export default function CountdownStickyFooter() {
   const location = useLocation();
   const targetDateStr = VOTING_DEADLINE_ISO;
@@ -87,11 +97,11 @@ export default function CountdownStickyFooter() {
               <p className="countdown-sub-title">
                 {timeLeft.isEnded ? (
                   <span>
-                    Polls officially closed on <strong>Tuesday, Oct 20 at {targetDateStr.includes('23:59') ? 'Midnight' : '11:00 PM'} (EAT)</strong> • Ranks are preserved while final tallies are audited.
+                    Polls officially closed on <strong>Tuesday, Oct 20 at {formatDeadlineTime(targetDateStr)} (EAT)</strong> • Ranks are preserved while final tallies are audited.
                   </span>
                 ) : (
                   <span>
-                    Deadline: <strong>Tuesday, Oct 20 at {targetDateStr.includes('23:59') ? 'Midnight' : '11:00 PM'} (EAT)</strong> • Vote in all categories!
+                    Deadline: <strong>Tuesday, Oct 20 at {formatDeadlineTime(targetDateStr)} (EAT)</strong> • Vote in all categories!
                   </span>
                 )}
               </p>
