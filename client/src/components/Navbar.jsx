@@ -182,47 +182,47 @@ export default function Navbar() {
             </NavLink>
           </li>
           {!isVotingClosed && (
-            <>
-              <li>
-                <NavLink
-                  to="/successful-nominations"
-                  onClick={() => {
-                    setOpen(false);
-                    setSearchOpen(false);
-                  }}
-                  id="navbar-successful-nominations-link"
-                >
-                  Successful Nominations
-                </NavLink>
-              </li>
-              <li>
-                <button
-                  type="button"
-                  className="navbar-contact-link-btn"
-                  onClick={() => {
-                    setOpen(false);
-                    setSearchOpen(false);
-                    openContactDrawer();
-                  }}
-                  id="navbar-contact-btn"
-                >
-                  Contact Us
-                </button>
-              </li>
-              <li>
-                <NavLink
-                  to="/nominate"
-                  className="navbar-cta"
-                  onClick={() => {
-                    setOpen(false);
-                    setSearchOpen(false);
-                  }}
-                  id="navbar-nominate-btn"
-                >
-                  Nominate
-                </NavLink>
-              </li>
-            </>
+            <li>
+              <NavLink
+                to="/successful-nominations"
+                onClick={() => {
+                  setOpen(false);
+                  setSearchOpen(false);
+                }}
+                id="navbar-successful-nominations-link"
+              >
+                Successful Nominations
+              </NavLink>
+            </li>
+          )}
+          <li>
+            <button
+              type="button"
+              className="navbar-contact-link-btn"
+              onClick={() => {
+                setOpen(false);
+                setSearchOpen(false);
+                openContactDrawer();
+              }}
+              id="navbar-contact-btn"
+            >
+              Contact Us
+            </button>
+          </li>
+          {!isVotingClosed && (
+            <li>
+              <NavLink
+                to="/nominate"
+                className="navbar-cta"
+                onClick={() => {
+                  setOpen(false);
+                  setSearchOpen(false);
+                }}
+                id="navbar-nominate-btn"
+              >
+                Nominate
+              </NavLink>
+            </li>
           )}
         </ul>
       </div>

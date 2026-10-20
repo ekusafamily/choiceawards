@@ -7,8 +7,8 @@ const pendingVotes = require('../services/pendingVotes');
 
 const router = express.Router();
 
-// Simulation Deadline: Tuesday, October 20, 2026 at 23:30:00 EAT (11:30 PM)
-const VOTING_DEADLINE_ISO = process.env.VOTING_DEADLINE || '2026-10-20T23:30:00+03:00';
+// Simulation Deadline: Tuesday, October 20, 2026 at 23:35:00 EAT (11:35 PM) - updated
+const VOTING_DEADLINE_ISO = process.env.VOTING_DEADLINE || '2026-10-20T23:35:00+03:00';
 
 function isVotingClosed() {
   const deadline = new Date(VOTING_DEADLINE_ISO).getTime();
