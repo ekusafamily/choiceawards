@@ -1,16 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Lock } from 'lucide-react';
+import { ArrowLeft, Lock, MapPin, ShieldCheck, Calendar, Trophy, Award } from 'lucide-react';
 import apiClient from '../api/client';
 import NomineeCard from '../components/NomineeCard';
 import LeaderboardTable from '../components/LeaderboardTable';
 import VoteModal from '../components/VoteModal';
 import { useVotingStatus } from '../utils/votingDeadline';
+import { FALLBACK_CATEGORIES } from '../utils/fallbackCategories';
 
 export default function CategoryDetail() {
   const { slug } = useParams();
   const { isVotingClosed } = useVotingStatus();
-  const [category, setCategory] = useState(null);
+  const fallbackMatch = FALLBACK_CATEGORIES.find((c) => c.slug === slug);
+  const [category, setCategory] = useState(fallbackMatch || null);
   const [nominees, setNominees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState('leaderboard');
@@ -21,13 +23,22 @@ export default function CategoryDetail() {
     async function fetch() {
       try {
         const { data } = await apiClient.get(`/categories/${slug}`);
-        setCategory(data);
-        if (data?.name) {
-          document.title = `${data.name} • DeKUTSO Comrade Choice Awards 2026`;
+        if (data) {
+          setCategory(data);
+          if (data.name) {
+            document.title = `${data.name} • DeKUTSO Comrade Choice Awards 2026`;
+          }
+          setNominees(data.nominees || []);
+        } else if (fallbackMatch) {
+          setCategory(fallbackMatch);
+          document.title = `${fallbackMatch.name} • DeKUTSO Comrade Choice Awards 2026`;
         }
-        setNominees(data.nominees || []);
       } catch (err) {
-        console.error('Failed to load category:', err);
+        console.error('Failed to load category, using fallback:', err);
+        if (fallbackMatch) {
+          setCategory(fallbackMatch);
+          document.title = `${fallbackMatch.name} • DeKUTSO Comrade Choice Awards 2026`;
+        }
       } finally {
         setLoading(false);
       }
@@ -97,6 +108,21 @@ export default function CategoryDetail() {
           <ArrowLeft size={16} /> Back to Home
         </Link>
 
+        {/* Verification & Freedom Hall Ribbon */}
+        <div className="category-ceremony-strip" style={{ marginBottom: '1.25rem' }}>
+          <div className="category-ceremony-strip-left">
+            <span className="ceremony-pulse-dot" />
+            <ShieldCheck size={16} style={{ color: 'var(--color-primary, #1B5E20)' }} />
+            <span>Vote Verification In Progress</span>
+          </div>
+          <div className="category-ceremony-strip-right">
+            <MapPin size={15} style={{ color: 'var(--color-accent, #D4A017)' }} />
+            <span>
+              Award Ceremony: <strong>Freedom Hall</strong> &bull; <em>Dates yet to be communicated</em>
+            </span>
+          </div>
+        </div>
+
         <div style={{ marginBottom: 'var(--space-2xl)' }}>
           <span
             style={{
@@ -148,13 +174,14 @@ export default function CategoryDetail() {
               gap: '12px',
             }}
           >
-            <Lock size={18} style={{ color: 'var(--color-gold)', flexShrink: 0 }} />
+            <ShieldCheck size={20} style={{ color: 'var(--color-gold)', flexShrink: 0 }} />
             <div>
               <strong style={{ color: 'var(--color-gold)', display: 'block' }}>
-                Voting Concluded for {category.name}
+                Vote Verification Ongoing &bull; Gala Ceremony at Freedom Hall
               </strong>
               <span style={{ fontSize: '0.88rem', opacity: 0.85 }}>
-                Polls closed on Tuesday, Oct 20 at Midnight (EAT). Category standings are preserved while final tallies are audited.
+                Voting for <strong>{category.name}</strong> has concluded. Votes are undergoing official verification by the DeKUTSO Committee. 
+                Winners will be presented live at <strong>Freedom Hall</strong> (dates yet to be communicated).
               </span>
             </div>
           </div>

@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import apiClient from '../api/client';
 import CategoryCard from '../components/CategoryCard';
+import { FALLBACK_CATEGORIES } from '../utils/fallbackCategories';
+import { MapPin, ShieldCheck } from 'lucide-react';
 
 export default function Categories() {
-  const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState(FALLBACK_CATEGORIES);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
 
@@ -12,9 +14,14 @@ export default function Categories() {
     async function fetch() {
       try {
         const { data } = await apiClient.get('/categories');
-        setCategories(data);
+        if (data && Array.isArray(data) && data.length > 0) {
+          setCategories(data);
+        } else {
+          setCategories(FALLBACK_CATEGORIES);
+        }
       } catch (err) {
-        console.error('Failed to load categories:', err);
+        console.error('Failed to load categories, using fallback:', err);
+        setCategories(FALLBACK_CATEGORIES);
       } finally {
         setLoading(false);
       }
@@ -30,10 +37,27 @@ export default function Categories() {
   return (
     <div className="page">
       <div className="container">
+        {/* Verification & Freedom Hall Ribbon */}
+        <div className="category-ceremony-strip">
+          <div className="category-ceremony-strip-left">
+            <span className="ceremony-pulse-dot" />
+            <ShieldCheck size={16} style={{ color: 'var(--color-primary, #1B5E20)' }} />
+            <span>Vote Verification In Progress</span>
+          </div>
+          <div className="category-ceremony-strip-right">
+            <MapPin size={15} style={{ color: 'var(--color-accent, #D4A017)' }} />
+            <span>
+              Award Ceremony: <strong>Freedom Hall</strong> &bull; <em>Dates yet to be communicated</em>
+            </span>
+          </div>
+        </div>
+
         <div className="section-title">
           <h2>All Award Categories</h2>
           <hr className="gold-line" />
-          <p>Choose a category to view nominees and leaderboards.</p>
+          <p>
+            26 official categories recognizing individual student brilliance, campus leadership, and student organizations.
+          </p>
         </div>
 
         {/* Filter tabs */}

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import apiClient from '../api/client';
-import { Trophy, Medal, Star, User, Award, ChevronRight, Lock } from 'lucide-react';
+import { Trophy, Medal, Star, User, Award, ChevronRight, Lock, MapPin, ShieldCheck, Calendar, Sparkles } from 'lucide-react';
 import { useVotingStatus } from '../utils/votingDeadline';
 
 const POSITION_LABELS = ['1st Place', '2nd Place', '3rd Place'];
@@ -133,14 +133,27 @@ export default function TopNominees() {
     <div className="top-nominees-page" id="top-nominees-page">
       <div className="top-nominees-header">
         <div className="container">
+          {/* Verification & Freedom Hall Ribbon */}
+          <div className="category-ceremony-strip" style={{ marginBottom: '1.25rem' }}>
+            <div className="category-ceremony-strip-left">
+              <span className="ceremony-pulse-dot" />
+              <ShieldCheck size={16} style={{ color: 'var(--color-primary, #1B5E20)' }} />
+              <span>Vote Verification In Progress</span>
+            </div>
+            <div className="category-ceremony-strip-right">
+              <MapPin size={15} style={{ color: 'var(--color-accent, #D4A017)' }} />
+              <span>
+                Award Ceremony: <strong>Freedom Hall</strong> &bull; <em>Dates yet to be communicated</em>
+              </span>
+            </div>
+          </div>
+
           <div className="top-nominees-header-inner">
             <Award size={36} className="header-award-icon" />
             <div>
-              <h1>Top Nominees</h1>
+              <h1>Top Nominees &amp; Leaderboard</h1>
               <p className="top-nominees-subtitle">
-                {isVotingClosed
-                  ? 'Official voting closed • Ranks are preserved while final tallies are audited for the gala ceremony'
-                  : 'Leading the race — ranked by total community votes'}
+                Voting has concluded &bull; Verification is actively ongoing &bull; Grand Ceremony at Freedom Hall
               </p>
             </div>
           </div>
@@ -155,16 +168,29 @@ export default function TopNominees() {
           </div>
         )}
 
-        {error && (
-          <div className="empty-state" style={{ color: 'var(--color-error, #e53e3e)' }}>
-            <p>{error}</p>
-          </div>
-        )}
-
-        {!loading && !error && nominees.length === 0 && (
-          <div className="empty-state">
-            <Trophy size={48} style={{ opacity: 0.3, marginBottom: '1rem' }} />
-            <p>No approved nominees yet. Check back soon!</p>
+        {!loading && nominees.length === 0 && (
+          <div className="empty-state ceremony-empty-verification-state">
+            <div className="ceremony-empty-icon-wrap">
+              <ShieldCheck size={42} style={{ color: 'var(--color-accent, #D4A017)' }} />
+            </div>
+            <h3>Vote Verification &amp; Ballot Audit In Progress</h3>
+            <p style={{ maxWidth: '560px', margin: '0.75rem auto 1.5rem', lineHeight: 1.6 }}>
+              All submitted votes and candidate standings across all 26 categories are currently being audited and verified by the DeKUTSO Committee. 
+              The final certified winners will be crowned live at <strong>Freedom Hall</strong>.
+            </p>
+            <div className="ceremony-tag-group">
+              <span className="ceremony-info-chip">
+                <MapPin size={14} /> Freedom Hall (DeKUT)
+              </span>
+              <span className="ceremony-info-chip">
+                <Calendar size={14} /> Dates Yet To Be Communicated
+              </span>
+            </div>
+            <div style={{ marginTop: '1.75rem' }}>
+              <Link to="/categories" className="btn btn-gold btn-sm">
+                <Award size={14} /> Explore Award Categories
+              </Link>
+            </div>
           </div>
         )}
 

@@ -78,7 +78,8 @@ export default function CountdownStickyFooter() {
           <div className="countdown-sticky-left">
             {timeLeft.isEnded ? (
               <div className="countdown-sticky-badge countdown-sticky-badge-closed">
-                <Lock size={13} className="inline-icon" /> Polls Closed
+                <span className="ceremony-pulse-dot" />
+                <Lock size={13} className="inline-icon" /> Verification Ongoing
               </div>
             ) : (
               <div className="countdown-sticky-badge">
@@ -92,12 +93,12 @@ export default function CountdownStickyFooter() {
 
             <div className="countdown-sticky-titles">
               <h4 className="countdown-main-title">
-                {timeLeft.isEnded ? 'Voting Has Concluded' : 'Voting Closes In'}
+                {timeLeft.isEnded ? 'Award Ceremony at Freedom Hall' : 'Voting Closes In'}
               </h4>
               <p className="countdown-sub-title">
                 {timeLeft.isEnded ? (
                   <span>
-                    Polls officially closed on <strong>Tuesday, Oct 20 at {formatDeadlineTime(targetDateStr)} (EAT)</strong> • Ranks are preserved while final tallies are audited.
+                    Venue: <strong>Freedom Hall</strong> &bull; <em>Dates yet to be communicated</em> &bull; Official vote verification in progress.
                   </span>
                 ) : (
                   <span>
@@ -113,7 +114,7 @@ export default function CountdownStickyFooter() {
             {timeLeft.isEnded ? (
               <div className="countdown-closed-tag">
                 <Sparkles size={14} style={{ color: 'var(--color-gold)' }} />
-                <span>Auditing & Verification In Progress</span>
+                <span>Freedom Hall &bull; Dates TBA</span>
               </div>
             ) : (
               <div className="countdown-digits-grid">

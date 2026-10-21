@@ -13,12 +13,14 @@ import TopNominees from './pages/TopNominees';
 import SuccessfulNominations from './pages/SuccessfulNominations';
 import CountdownStickyFooter from './components/CountdownStickyFooter';
 import ContactDrawer from './components/ContactDrawer';
+import CeremonyAnnouncementBanner from './components/CeremonyAnnouncementBanner';
 
 export default function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
       <Navbar />
+      <CeremonyAnnouncementBanner />
       <main>
         <Routes>
           <Route path="/" element={<Home />} />

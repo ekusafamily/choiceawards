@@ -4,12 +4,12 @@ const supabase = require('../config/supabase');
 const router = express.Router();
 
 // GET /api/nominees - List approved nominees, optionally filtered by category
-router.get('/', async (req, res, next) => {
+router.get('/', async (req, res) => {
   try {
     const { category_id } = req.query;
 
     if (!supabase) {
-      return res.status(500).json({ error: { message: 'Database client not initialized' } });
+      return res.json([]);
     }
 
     let query = supabase
@@ -24,11 +24,13 @@ router.get('/', async (req, res, next) => {
 
     const { data, error } = await query;
     if (error) {
-      return res.status(500).json({ error: { message: error.message } });
+      console.warn('Supabase nominees query error (returning empty fallback):', error.message);
+      return res.json([]);
     }
     res.json(data || []);
   } catch (err) {
-    next(err);
+    console.warn('Nominees route caught error, returning empty list:', err.message);
+    res.json([]);
   }
 });
 

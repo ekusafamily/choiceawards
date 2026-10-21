@@ -55,6 +55,10 @@ export default function HeroSection() {
         <div className="hero-dekutso-badge">
           <span>DeKUT Students Organization (DeKUTSO)</span>
         </div>
+        <div className="hero-ceremony-hall-badge">
+          <span className="ceremony-pulse-dot" />
+          <span>Award Ceremony: Freedom Hall (Dates TBA) &bull; Verification In Progress</span>
+        </div>
         <h1>
           DeKUTSO <span className="gold-accent">Comrade Choice</span> Award
         </h1>
@@ -62,12 +66,20 @@ export default function HeroSection() {
           The Premier Student Recognition Platform at Dedan Kimathi University of Technology
         </p>
         <p className="hero-tagline">
-          Your Voice. Your Choice. Your Campus.
+          Voting has concluded &bull; Verification ongoing &bull; Grand Ceremony at Freedom Hall
         </p>
         <div className="hero-actions">
-          <Link to="/nominate" className="btn btn-gold btn-lg" id="hero-nominate-btn">
-            Nominate Now
-          </Link>
+          <a
+            href="#ceremony-notice-section"
+            className="btn btn-gold btn-lg"
+            id="hero-ceremony-details-btn"
+            onClick={(e) => {
+              e.preventDefault();
+              document.getElementById('ceremony-notice-section')?.scrollIntoView({ behavior: 'smooth' });
+            }}
+          >
+            Ceremony at Freedom Hall
+          </a>
           <Link
             to="/nominees"
             className="btn btn-outline btn-lg"

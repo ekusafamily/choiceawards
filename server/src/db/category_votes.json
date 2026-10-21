@@ -7,5 +7,14 @@
     "points": 10,
     "transaction_id": "UJD6MAR54B",
     "timestamp": "2026-10-13T17:55:01.914Z"
+  },
+  {
+    "email": "brian.ireri24@students.dkut.ac.ke",
+    "category_id": "6b1c9740-4d5b-483e-b286-edb60d19ac6d",
+    "nominee_id": "bc3878c9-549b-4dec-8e3b-138f9118ec61",
+    "amount": 10,
+    "points": 10,
+    "transaction_id": "UJE6MARIYL",
+    "timestamp": "2026-10-13T23:18:32.351Z"
   }
 ]

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { User, Trophy, Lock } from 'lucide-react';
+import { User, Trophy, Lock, ShieldCheck, MapPin } from 'lucide-react';
 import { useVotingStatus } from '../utils/votingDeadline';
 
 export default function LeaderboardTable({ nominees = [], categoryName = '', onVote }) {
@@ -11,8 +11,18 @@ export default function LeaderboardTable({ nominees = [], categoryName = '', onV
         <div className="leaderboard-header">
           <h3>{categoryName}</h3>
         </div>
-        <div className="empty-state">
-          <p>No nominees yet. Be the first to nominate someone.</p>
+        <div className="empty-state ceremony-empty-verification-state" style={{ padding: '2.5rem 1rem', textAlign: 'center' }}>
+          <ShieldCheck size={36} style={{ color: 'var(--color-accent, #D4A017)', margin: '0 auto 12px' }} />
+          <h4 style={{ fontSize: '1.15rem', color: 'var(--color-primary, #1B5E20)', marginBottom: '8px' }}>
+            Category Verification In Progress
+          </h4>
+          <p style={{ maxWidth: '520px', margin: '0 auto 14px', lineHeight: 1.6, color: 'var(--color-text-muted)' }}>
+            All cast votes for <strong>{categoryName}</strong> are currently being audited by the DeKUTSO Committee. 
+            Winners will be awarded live at <strong>Freedom Hall</strong> (dates yet to be communicated).
+          </p>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: 'var(--color-accent, #D4A017)', fontWeight: 600 }}>
+            <MapPin size={14} /> Ceremony Venue: Freedom Hall
+          </div>
         </div>
       </div>
     );

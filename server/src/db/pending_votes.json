@@ -1,1 +1,13 @@
-{}
+{
+  "CCA-1791933498950-8YHB": {
+    "nominee_id": "bc3878c9-549b-4dec-8e3b-138f9118ec61",
+    "category_id": "6b1c9740-4d5b-483e-b286-edb60d19ac6d",
+    "email": "brian.ireri24@students.dkut.ac.ke",
+    "amount": 10,
+    "points": 10,
+    "phone": "0702322277",
+    "votes_count": 1,
+    "gateway": "payhero",
+    "created_at": 1791933500146
+  }
+}

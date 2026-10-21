@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import apiClient from '../api/client';
 import HeroSection from '../components/HeroSection';
+import CeremonyNoticeCard from '../components/CeremonyNoticeCard';
 import StatsBar from '../components/StatsBar';
 import LandingSearchBar from '../components/LandingSearchBar';
 import CategoryCard from '../components/CategoryCard';
@@ -8,10 +9,11 @@ import NomineeCard from '../components/NomineeCard';
 import VoteModal from '../components/VoteModal';
 import { Target, CheckCircle2, Globe, Sparkles, HeartHandshake, Award, User, X, Lock } from 'lucide-react';
 import { useVotingStatus } from '../utils/votingDeadline';
+import { FALLBACK_CATEGORIES } from '../utils/fallbackCategories';
 
 export default function Home() {
   const { isVotingClosed } = useVotingStatus();
-  const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState(FALLBACK_CATEGORIES);
   const [allNominees, setAllNominees] = useState([]);
   const [stats, setStats] = useState({ categoriesCount: 26, nomineesCount: 0, votesCount: 0 });
   const [nomineeCountMap, setNomineeCountMap] = useState({});
@@ -39,13 +41,17 @@ export default function Home() {
     async function fetchData() {
       try {
         const [catsRes, statsRes, nomRes] = await Promise.all([
-          apiClient.get('/categories'),
+          apiClient.get('/categories').catch(() => ({ data: FALLBACK_CATEGORIES })),
           apiClient.get('/stats').catch(() => ({ data: null })),
           apiClient.get('/nominees').catch(() => ({ data: [] })),
         ]);
 
+        const rawCats = catsRes?.data && Array.isArray(catsRes.data) && catsRes.data.length > 0
+          ? catsRes.data
+          : FALLBACK_CATEGORIES;
+
         // Count nominees per category for sorting + build top-3 map
-        const nominees = nomRes.data || [];
+        const nominees = nomRes?.data || [];
         setAllNominees(nominees);
 
         const countMap = {};
@@ -60,18 +66,19 @@ export default function Home() {
         });
 
         // Sort categories by nominee count descending
-        const sorted = (catsRes.data || []).slice().sort(
+        const sorted = rawCats.slice().sort(
           (a, b) => (countMap[b.id] || 0) - (countMap[a.id] || 0)
         );
 
         setCategories(sorted);
         setNomineeCountMap(countMap);
         setTopNomineeMap(top3Map);
-        if (statsRes.data) {
+        if (statsRes?.data) {
           setStats(statsRes.data);
         }
       } catch (err) {
-        console.error('Failed to load home data:', err);
+        console.error('Failed to load home data, using fallback categories:', err);
+        setCategories(FALLBACK_CATEGORIES);
       } finally {
         setLoading(false);
       }
@@ -145,6 +152,7 @@ export default function Home() {
   return (
     <>
       <HeroSection />
+      <CeremonyNoticeCard />
       <StatsBar
         categoriesCount={stats.categoriesCount || categories.length}
         nomineesCount={stats.nomineesCount}
